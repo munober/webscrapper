@@ -1,10 +1,17 @@
-# for dynamic pages
 import hashlib
 from selenium import webdriver
 import time, os, requests, io
 from PIL import Image
-from pathlib import Path
+
+# Macroparameters to set before running
 DRIVER_PATH = "chromedriver.exe"
+search_term = 'Donald Trump'
+sample_size = 1
+
+search_url_google = "https://www.google.com/search?safe=off&site=&tbm=isch&source=hp&q={q}&oq={q}&gs_l=img"
+search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
+
+place_to_search = search_url_imdb
 
 """
 wd = webdriver.Chrome(executable_path=DRIVER_PATH)
@@ -14,15 +21,11 @@ search_box.send_keys('Dogs')
 # wd.quit()
 """
 
-
-def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver, sleep_between_interactions: int = 1):
+def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
+                     sleep_between_interactions: int = 1, search_url: str = place_to_search):
     def scroll_to_end(wd):
         wd.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(sleep_between_interactions)
-
-        # build the google query
-
-    search_url = "https://www.google.com/search?safe=off&site=&tbm=isch&source=hp&q={q}&oq={q}&gs_l=img"
 
     # load the page
     wd.get(search_url.format(q=query))
@@ -102,7 +105,6 @@ def search_and_download(search_term: str, driver_path: str, target_path='./image
     for elem in res:
         persist_image(target_folder, elem)
 
-
-search_term = 'Dog'
-search_and_download(search_term=search_term, driver_path=DRIVER_PATH)
+# Running the search
+search_and_download(search_term=search_term, driver_path=DRIVER_PATH, number_images= sample_size)
 

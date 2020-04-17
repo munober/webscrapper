@@ -4,6 +4,7 @@ from functools import partial
 
 # Import QApplication and the required widgets from PyQt5.QtWidgets
 from PyQt5.QtCore import Qt
+import PyQt5.QtWidgets as widgets
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QGridLayout
 from PyQt5.QtWidgets import QLineEdit
@@ -21,8 +22,8 @@ class PyCalcUi(QMainWindow):
         """View initializer."""
         super().__init__()
         # Set some main window's properties
-        self.setWindowTitle("PyCalc")
-        self.setFixedSize(235, 235)
+        self.setWindowTitle("Dataset generator")
+        self.setFixedSize(320, 240)
         # Set the central widget and the general layout
         self.generalLayout = QVBoxLayout()
         self._centralWidget = QWidget(self)
