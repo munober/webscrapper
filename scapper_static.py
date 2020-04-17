@@ -1,36 +1,50 @@
-"""
-    Basic webpage scapping tool
-"""
-
-
-import requests
-import pandas as pd
+#https://bit.ly/2NyxdAG
 from bs4 import BeautifulSoup
-""" 
- For static pages
-"""
-wikipage = "https://en.wikipedia.org/wiki/List_of_sovereign_states_and_dependent_territories_by_continent_(data_file)"
-result = requests.get(wikipage)
+import requests
+import re
 
-# if successful parse the download into a BeautifulSoup object, which allows easy manipulation
-if result.status_code == 200:
-    print('great succes')
-    soup = BeautifulSoup(result.content, "html.parser")
+# Download IMDB's Top 250 data
+url = 'http://www.imdb.com/chart/top'
+response = requests.get(url)
+soup = BeautifulSoup(response.text, 'lxml')
 
-# find the object with HTML class wibitable sortable
-table = soup.find('table', {'class': 'wikitable sortable'})
+movies = soup.select('td.titleColumn')
+links = [a.attrs.get('href') for a in soup.select('td.titleColumn a')]
+crew = [a.attrs.get('title') for a in soup.select('td.titleColumn a')]
+ratings = [b.attrs.get('data-value') for b in soup.select('td.posterColumn span[name=ir]')]
+votes = [b.attrs.get('data-value') for b in soup.select('td.ratingColumn strong')]
 
-# loop through all the rows and pull the text
-new_table = []
-for row in table.find_all('tr')[1:]:
-    column_marker = 0
-    columns = row.find_all('td')
-    new_table.append([column.get_text() for column in columns])
+imdb = []
 
-df = pd.DataFrame(new_table, columns=['ContinentCode', 'Alpha2', 'Alpha3', 'PhoneCode', 'Name'])
-df['Name'] = df['Name'].str.replace('\n', '')
+# Store each item into dictionary (data), then put those into a list (imdb)
+for index in range(0, len(movies)):
+    # Seperate movie into: 'place', 'title', 'year'
+    movie_string = movies[index].get_text()
+    movie = (' '.join(movie_string.split()).replace('.', ''))
+    movie_title = movie[len(str(index))+1:-7]
+    year = re.search('\((.*?)\)', movie_string).group(1)
+    place = movie[:len(str(index))-(len(movie))]
+    data = {"movie_title": movie_title,
+            "year": year,
+            "place": place,
+            "star_cast": crew[index],
+            "rating": ratings[index],
+            "vote": votes[index],
+            "link": links[index]}
+    imdb.append(data)
 
-# for displaying data
-df
-res = pd.read_html(wikipage)
-res[2]
+actors = []
+for item in imdb:
+    # print(item['place'], '-', item['movie_title'], '('+item['year']+') -', 'Starring:', item['star_cast'])
+    split = []
+    split = item['star_cast'].split(",")
+    for index in range (0, len(split)):
+        actors.append(split[index].replace("(dir.)", "").strip())
+
+actors = list(dict.fromkeys(actors))
+
+actors.sort()
+
+with open("actors_list.txt","w+") as output:
+    for actor in actors:
+        output.write(actor + '\n')
