@@ -2,10 +2,11 @@ import hashlib
 from selenium import webdriver
 import time, os, requests, io
 from PIL import Image
+from math import floor
 
 # Macroparameters to set before running
 DRIVER_PATH = "chromedriver.exe"
-sample_size = 1
+sample_size = 5
 search_url_google = "https://www.google.com/search?safe=off&site=&tbm=isch&source=hp&q={q}&oq={q}&gs_l=img"
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
 
@@ -64,7 +65,8 @@ def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
 
     return image_urls
 
-
+maxwidth = 1000
+maxheight = 1000
 def persist_image(folder_path:str,url:str):
     try:
         image_content = requests.get(url).content
@@ -77,13 +79,19 @@ def persist_image(folder_path:str,url:str):
         image = Image.open(image_file).convert('RGB')
         file_path = os.path.join(folder_path,hashlib.sha1(image_content).hexdigest()[:10] + '.jpg')
         with open(file_path, 'wb') as f:
+            width, height = image.size
+            aspect_ratio = min(maxwidth / width, maxheight / height)
+            new_width = floor(aspect_ratio * width)
+            new_height = floor(aspect_ratio * height)
+            if width > maxwidth or height > maxheight:
+                image = image.resize((new_width, new_height), Image.ANTIALIAS)
             image.save(f, "JPEG", quality=85)
         print(f"SUCCESS - saved {url} - as {file_path}")
     except Exception as e:
         print(f"ERROR - Could not save {url} - {e}")
 
 
-def search_and_download(search_term: str, driver_path: str, target_path='./images', number_images=5):
+def search_and_download(search_term: str, driver_path: str, target_path='./dataset/images', number_images=5):
     target_folder = os.path.join(target_path, '_'.join(search_term.lower().split(' ')))
 
     if not os.path.exists(target_folder):
