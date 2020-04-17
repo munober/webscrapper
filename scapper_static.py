@@ -1,10 +1,9 @@
-#https://bit.ly/2NyxdAG
 from bs4 import BeautifulSoup
 import requests
 import re
 
-# Download IMDB's Top 250 data
 url = 'http://www.imdb.com/chart/top'
+      #'https://www.imdb.com/search/name/?gender=male%2Cfemale&ref_=nv_cel_m'
 response = requests.get(url)
 soup = BeautifulSoup(response.text, 'lxml')
 
@@ -45,6 +44,6 @@ actors = list(dict.fromkeys(actors))
 
 actors.sort()
 
-with open("actors_list.txt","w+") as output:
+with open("actors_list_top250movies.txt","w+") as output:
     for actor in actors:
         output.write(actor + '\n')
