@@ -6,14 +6,14 @@ from math import floor
 
 # Macroparameters to set before running
 DRIVER_PATH = "chromedriver.exe"
-sample_size = 5
+sample_size = 50
 search_url_google = "https://www.google.com/search?safe=off&site=&tbm=isch&source=hp&q={q}&oq={q}&gs_l=img"
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
 
 place_to_search = search_url_google
 
 def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
-                     sleep_between_interactions: int = 1, search_url: str = place_to_search):
+                     sleep_between_interactions: 0.2, search_url: str = place_to_search):
     def scroll_to_end(wd):
         wd.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(sleep_between_interactions)
@@ -98,15 +98,15 @@ def search_and_download(search_term: str, driver_path: str, target_path='./datas
         os.makedirs(target_folder)
 
     with webdriver.Chrome(executable_path=driver_path) as wd:
-        res = fetch_image_urls(search_term, number_images, wd=wd, sleep_between_interactions=0.5)
+        res = fetch_image_urls(search_term, number_images, wd=wd, sleep_between_interactions=0.2)
 
     for elem in res:
         persist_image(target_folder, elem)
 
 # Running the search
-with open("actors_list.txt","r") as input:
+with open("dataset/imdbactors.txt","r") as input:
     search_terms = input.readlines()
 for item in search_terms:
-    search_term = item.replace("n", "").strip()
+    search_term = item.strip()
     search_and_download(search_term=search_term, driver_path=DRIVER_PATH, number_images= sample_size)
 
