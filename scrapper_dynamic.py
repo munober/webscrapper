@@ -5,21 +5,11 @@ from PIL import Image
 
 # Macroparameters to set before running
 DRIVER_PATH = "chromedriver.exe"
-search_term = 'Donald Trump'
 sample_size = 1
-
 search_url_google = "https://www.google.com/search?safe=off&site=&tbm=isch&source=hp&q={q}&oq={q}&gs_l=img"
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
 
-place_to_search = search_url_imdb
-
-"""
-wd = webdriver.Chrome(executable_path=DRIVER_PATH)
-wd.get('https://google.com')
-search_box = wd.find_element_by_css_selector('input.gLFyf')
-search_box.send_keys('Dogs')
-# wd.quit()
-"""
+place_to_search = search_url_google
 
 def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
                      sleep_between_interactions: int = 1, search_url: str = place_to_search):
@@ -106,5 +96,9 @@ def search_and_download(search_term: str, driver_path: str, target_path='./image
         persist_image(target_folder, elem)
 
 # Running the search
-search_and_download(search_term=search_term, driver_path=DRIVER_PATH, number_images= sample_size)
+with open("actors_list.txt","r") as input:
+    search_terms = input.readlines()
+for item in search_terms:
+    search_term = item.replace("n", "").strip()
+    search_and_download(search_term=search_term, driver_path=DRIVER_PATH, number_images= sample_size)
 
