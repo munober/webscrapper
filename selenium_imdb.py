@@ -71,10 +71,11 @@ def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
                 continue
 
             # extract image urls
-            actual_images = wd.find_elements_by_css_selector('img.n3VNCb')
+            actual_images = wd.find_elements_by_xpath('/html/head/meta[7]')
             for actual_image in actual_images:
-                if actual_image.get_attribute('src') and 'http' in actual_image.get_attribute('src'):
-                    image_urls.add(actual_image.get_attribute('src'))
+                if actual_image.get_attribute('content') and 'http' in actual_image.get_attribute('content'):
+                    image_urls.add(actual_image.get_attribute('content'))
+                    # actual_image.send_keys(Keys.ESCAPE)
 
             image_count = len(image_urls)
 
