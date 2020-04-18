@@ -6,6 +6,8 @@ from PIL import Image
 from math import floor
 
 # Macroparameters to set before running
+from selenium.webdriver.common.keys import Keys
+
 DRIVER_PATH = "chromedriver.exe"
 sample_size = 5
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
@@ -57,13 +59,12 @@ def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
         # scroll_to_end(wd)
 
         # get all image thumbnail results
-        iterator = 1
         thumbnail_results = (wd.find_elements_by_xpath("/html/body/div[2]/div/div[2]/div/div[1]/div[1]/div/div[3]/a"))
         number_results = len(thumbnail_results)
 
         print(f"Found: {number_results} search results. Extracting links from {results_start}:{number_results}")
 
-        for img in thumbnail_results:
+        for img in thumbnail_results[results_start:number_results]:
             try:
                 img.click()
                 time.sleep(sleep_between_interactions)
@@ -75,20 +76,20 @@ def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
             for actual_image in actual_images:
                 if actual_image.get_attribute('content') and 'http' in actual_image.get_attribute('content'):
                     image_urls.add(actual_image.get_attribute('content'))
-                    # actual_image.send_keys(Keys.ESCAPE)
+            return image_urls
 
             image_count = len(image_urls)
 
             if len(image_urls) >= max_links_to_fetch:
                 print(f"Found: {len(image_urls)} image links, done!")
                 break
-        else:
-            print("Found:", len(image_urls), "image links, looking for more ...")
-            time.sleep(30)
-            return
-            load_more_button = wd.find_element_by_css_selector(".mye4qd")
-            if load_more_button:
-                wd.execute_script("document.querySelector('.mye4qd').click();")
+        # else:
+        #     print("Found:", len(image_urls), "image links, looking for more ...")
+        #     time.sleep(30)
+        #     return
+        #     load_more_button = wd.find_element_by_css_selector(".mye4qd")
+        #     if load_more_button:
+        #         wd.execute_script("document.querySelector('.mye4qd').click();")
 
         # move the result startpoint further down
         results_start = len(thumbnail_results)
