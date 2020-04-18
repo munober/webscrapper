@@ -29,6 +29,7 @@ def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
 
     image_urls = set()
     image_count = 0
+    page_number = 1
     # get all image thumbnail results
     thumbnail_result = (wd.find_elements_by_xpath("/html/body/div[2]/div/div[2]/div/div[1]/div[1]/div/div[3]/a"))
     max_images_page = len(thumbnail_result)
@@ -37,20 +38,30 @@ def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
     if max_links_to_fetch > max_images_page and max_images_page < 48:
         print(f'imdb doesn\'t offer enough pictures: Only {max_images_page} available.')
         max_links_to_fetch = max_images_page
-    while image_count < max_links_to_fetch:
+    while len(image_urls) < max_links_to_fetch:
         actual_image = wd.find_element_by_xpath('/html/head/meta[7]')
         if actual_image.get_attribute('content') and 'http' in actual_image.get_attribute('content'):
             image_urls.add(actual_image.get_attribute('content'))
-        image_count = len(image_urls)
+        image_count += 1
         if image_count == 48:
-            wd.get(query + '?page=2')
+            page_number += 1
+            wd.get(query + f'?page={page_number}')
+            time.sleep(sleep_between_interactions)
+            image_count = 0
+            thumbnail_result = (
+            wd.find_elements_by_xpath("/html/body/div[2]/div/div[2]/div/div[1]/div[1]/div/div[3]/a"))
+            max_images_page = len(thumbnail_result)
+            if max_links_to_fetch > max_images_page and max_images_page < 48:
+                print(f'imdb doesn\'t offer enough pictures: Only other {max_images_page} available.')
+                max_links_to_fetch = max_images_page
         else:
             wd.execute_script("window.history.go(-1)")
             time.sleep(sleep_between_interactions)
-        if image_count < max_links_to_fetch:
+
+        if(len(image_urls) < max_links_to_fetch):
             thumbnail_result = (wd.find_element_by_xpath("/html/body/div[2]/div/div[2]/div/div[1]/div[1]/div/div[3]/a[" + str(image_count + 1) + "]"))
             thumbnail_result.click()
-            time.sleep(sleep_between_interactions)
+        time.sleep(sleep_between_interactions)
     return image_urls
 
 maxwidth = 1000
