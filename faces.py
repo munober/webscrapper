@@ -44,26 +44,23 @@ def load_dataset(directory): # Loads all different face folders in a bigger fold
 		labels = [subdir for _ in range(len(faces))]
 		# summarize progress
 		print('>loaded %d examples for class: %s' % (len(faces), subdir))
+		for label in labels:
+			print (label)
 		X.extend(faces)
 		y.extend(labels)
 	return np.asarray(X), np.asarray(y) # return faces and labels in this order
 
 faces, labels = load_dataset(folder)
 print('Data set size: ', faces.shape, labels.shape)
-savez_compressed(dataset_file, faces, labels)
-
-
-"""
-# For testing purposes: 
-i = 1
-for filename in os.listdir(madonna_train):
-	path = madonna_train + filename
-	face = extract_face(path)
-	print(i, face.shape)
-	plt.subplot(2, 11, i)
-
-	i+=1
-plt.axis('off')
-plt.imshow(face)
+# savez_compressed(dataset_file, faces, labels)
+iterator = 1
+for face in faces:
+	img = Image.fromarray(face, 'RGB')
+	plt.subplot(4, 15, iterator)
+	plt.axis('off')
+	plt.imshow(face)
+	iterator += 1
+	if not os.path.exists('dataset/cropped/'):
+		os.makedirs('dataset/cropped/')
+	img = img.save('dataset/cropped/' + '/' + str(labels[iterator]) + '_' + str(iterator) + '.jpg')
 plt.show()
-"""

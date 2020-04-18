@@ -85,12 +85,14 @@ def persist_image(folder_path:str,url:str):
             new_height = floor(aspect_ratio * height)
             if width > maxwidth or height > maxheight:
                 image = image.resize((new_width, new_height), Image.ANTIALIAS)
-            image.save(f, "JPEG", quality=85)
+            width, height = image.size
+            if width < maxwidth and height < maxheight:
+                image.save(f, "JPEG", quality=85)
         print(f"SUCCESS - saved {url} - as {file_path}")
     except Exception as e:
         print(f"ERROR - Could not save {url} - {e}")
 
-
+# stadard download size is 5, can be overriden above
 def search_and_download(search_term: str, driver_path: str, target_path='./dataset/images', number_images=5):
     target_folder = os.path.join(target_path, '_'.join(search_term.lower().split(' ')))
 
