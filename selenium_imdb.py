@@ -1,37 +1,69 @@
 import hashlib
 from selenium import webdriver
 import time, os, requests, io
+from bs4 import BeautifulSoup
 from PIL import Image
 from math import floor
 
 # Macroparameters to set before running
 DRIVER_PATH = "chromedriver.exe"
-sample_size = 50
+sample_size = 5
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
 
+def bs_get_page(name: str):
+    response = requests.get(search_url_imdb.format(q=name).replace(" ", "+"))
+    html_soup = BeautifulSoup(response.text, 'html.parser')
+    link = html_soup.find('td', class_='result_text')  # div class where actor names listed
+    if (link.a.text) == name:
+        page = link.a.get('href').strip()
+        return ('https://imdb.com'+ page + 'mediaindex') # could also add /?page=1...2...etc
+    else:
+        return
+
+def fetch_image_urls_bs(actor_page: str):
+    response = requests.get(actor_page)
+    html_soup = BeautifulSoup(response.text, 'html.parser')
+    link = html_soup.find('div', class_='media_index_thumb_list')
+
+    iterator = 1
+    links = []
+    while iterator <= 48:
+
+        iterator += 1
+    if (link.a.text) == name:
+        page = link.a.get('href').strip()
+        return ('https://imdb.com' + page + 'mediaindex')  # could also add /?page=1...2...etc
+    return links
+
 def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
-                     sleep_between_interactions: 0.2, search_url: str = search_url_imdb):
+                     sleep_between_interactions: 1, search_url: str = search_url_imdb):
+    # query field currently not used because generating imdb's custom hash in def method above
     def scroll_to_end(wd):
         wd.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(sleep_between_interactions)
 
     # load the page
-    wd.get(search_url.format(q=query))
+    wd.get(search_url)
 
     image_urls = set()
     image_count = 0
     results_start = 0
     while image_count < max_links_to_fetch:
-        scroll_to_end(wd)
+        # scroll_to_end(wd)
 
         # get all image thumbnail results
-        thumbnail_results = wd.find_elements_by_css_selector("img.Q4LuWd")
+        iterator = 1
+        thumbnail_results = []
+        while iterator <= 48:
+            thumbnail_results.append(wd.find_elements_by_xpath("/html/body/div[2]/div/div[2]/div/div[1]/div[1]/div/div[3]/a[" + str(iterator) + "]/img"))
+            iterator += 1
+
         number_results = len(thumbnail_results)
+        print(thumbnail_results)
 
         print(f"Found: {number_results} search results. Extracting links from {results_start}:{number_results}")
 
-        for img in thumbnail_results[results_start:number_results]:
-            # try to click every thumbnail such that we can get the real image behind it
+        for img in thumbnail_results:
             try:
                 img.click()
                 time.sleep(sleep_between_interactions)
@@ -49,16 +81,16 @@ def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
             if len(image_urls) >= max_links_to_fetch:
                 print(f"Found: {len(image_urls)} image links, done!")
                 break
-        else:
-            print("Found:", len(image_urls), "image links, looking for more ...")
-            time.sleep(30)
-            return
-            load_more_button = wd.find_element_by_css_selector(".mye4qd")
-            if load_more_button:
-                wd.execute_script("document.querySelector('.mye4qd').click();")
+        # else:
+        #     print("Found:", len(image_urls), "image links, looking for more ...")
+        #     time.sleep(30)
+        #     return
+        #     load_more_button = wd.find_element_by_css_selector(".mye4qd")
+        #     if load_more_button:
+        #         wd.execute_script("document.querySelector('.mye4qd').click();")
 
         # move the result startpoint further down
-        results_start = len(thumbnail_results)
+        # results_start = len(thumbnail_results)
 
     return image_urls
 
@@ -90,14 +122,14 @@ def persist_image(folder_path:str,url:str):
         print(f"ERROR - Could not save {url} - {e}")
 
 # stadard download size is 5, can be overriden above
-def search_and_download(search_term: str, driver_path: str, target_path='./dataset/images', number_images=5):
+def search_and_download(search_term: str, driver_path: str, target_path='./dataset/images_imdb', number_images=5):
     target_folder = os.path.join(target_path, '_'.join(search_term.lower().split(' ')))
 
     if not os.path.exists(target_folder):
         os.makedirs(target_folder)
 
     with webdriver.Chrome(executable_path=driver_path) as wd:
-        res = fetch_image_urls(search_term, number_images, wd=wd, sleep_between_interactions=0.2)
+        res = fetch_image_urls_bs(bs_get_page(search_term))
 
     for elem in res:
         persist_image(target_folder, elem)
