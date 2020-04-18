@@ -24,6 +24,11 @@ def fetch_image_urls_bs(actor_page: str):
     response = requests.get(actor_page)
     html_soup = BeautifulSoup(response.text, 'html.parser')
     link = html_soup.find('div', class_='media_index_thumb_list')
+    print(link)
+    images_soup = BeautifulSoup(link.text, 'html.parser')
+    #print(images_soup)
+    images = images_soup.findAll('img')
+    #print(images)
 
     iterator = 1
     links = []
@@ -43,7 +48,7 @@ def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
         time.sleep(sleep_between_interactions)
 
     # load the page
-    wd.get(search_url)
+    wd.get(query)
 
     image_urls = set()
     image_count = 0
@@ -81,16 +86,16 @@ def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
             if len(image_urls) >= max_links_to_fetch:
                 print(f"Found: {len(image_urls)} image links, done!")
                 break
-        # else:
-        #     print("Found:", len(image_urls), "image links, looking for more ...")
-        #     time.sleep(30)
-        #     return
-        #     load_more_button = wd.find_element_by_css_selector(".mye4qd")
-        #     if load_more_button:
-        #         wd.execute_script("document.querySelector('.mye4qd').click();")
+        else:
+            print("Found:", len(image_urls), "image links, looking for more ...")
+            time.sleep(30)
+            return
+            load_more_button = wd.find_element_by_css_selector(".mye4qd")
+            if load_more_button:
+                wd.execute_script("document.querySelector('.mye4qd').click();")
 
         # move the result startpoint further down
-        # results_start = len(thumbnail_results)
+        results_start = len(thumbnail_results)
 
     return image_urls
 
@@ -129,7 +134,8 @@ def search_and_download(search_term: str, driver_path: str, target_path='./datas
         os.makedirs(target_folder)
 
     with webdriver.Chrome(executable_path=driver_path) as wd:
-        res = fetch_image_urls_bs(bs_get_page(search_term))
+        print(bs_get_page(search_term))
+        res = fetch_image_urls(bs_get_page(search_term), number_images, wd=wd, sleep_between_interactions=1)
 
     for elem in res:
         persist_image(target_folder, elem)
