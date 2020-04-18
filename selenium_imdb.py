@@ -9,7 +9,7 @@ from math import floor
 from selenium.webdriver.common.keys import Keys
 
 DRIVER_PATH = "chromedriver.exe"
-sample_size = 5
+sample_size = 80
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
 
 def bs_get_page(name: str):
@@ -22,26 +22,6 @@ def bs_get_page(name: str):
     else:
         return
 
-def fetch_image_urls_bs(actor_page: str):
-    response = requests.get(actor_page)
-    html_soup = BeautifulSoup(response.text, 'html.parser')
-    link = html_soup.find('div', class_='media_index_thumb_list')
-    print(link)
-    images_soup = BeautifulSoup(link.text, 'html.parser')
-    #print(images_soup)
-    images = images_soup.findAll('img')
-    #print(images)
-
-    iterator = 1
-    links = []
-    while iterator <= 48:
-
-        iterator += 1
-    if (link.a.text) == name:
-        page = link.a.get('href').strip()
-        return ('https://imdb.com' + page + 'mediaindex')  # could also add /?page=1...2...etc
-    return links
-
 def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
                      sleep_between_interactions: 1, search_url: str = search_url_imdb):
     # load the page
@@ -50,19 +30,27 @@ def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
     image_urls = set()
     image_count = 0
     # get all image thumbnail results
-    thumbnail_result = (wd.find_element_by_xpath("/html/body/div[2]/div/div[2]/div/div[1]/div[1]/div/div[3]/a[1]"))
-    thumbnail_result.click()
+    thumbnail_result = (wd.find_elements_by_xpath("/html/body/div[2]/div/div[2]/div/div[1]/div[1]/div/div[3]/a"))
+    max_images_page = len(thumbnail_result)
+    thumbnail_result[0].click()
     time.sleep(sleep_between_interactions)
+    if max_links_to_fetch > max_images_page and max_images_page < 48:
+        print(f'imdb doesn\'t offer enough pictures: Only {max_images_page} available.')
+        max_links_to_fetch = max_images_page
     while image_count < max_links_to_fetch:
         actual_image = wd.find_element_by_xpath('/html/head/meta[7]')
         if actual_image.get_attribute('content') and 'http' in actual_image.get_attribute('content'):
             image_urls.add(actual_image.get_attribute('content'))
         image_count = len(image_urls)
-        wd.execute_script("window.history.go(-1)")
-        time.sleep(sleep_between_interactions)
-        thumbnail_result = (wd.find_element_by_xpath("/html/body/div[2]/div/div[2]/div/div[1]/div[1]/div/div[3]/a[" + str(image_count + 1) + "]"))
-        thumbnail_result.click()
-        time.sleep(sleep_between_interactions)
+        if image_count == 48:
+            wd.get(query + '?page=2')
+        else:
+            wd.execute_script("window.history.go(-1)")
+            time.sleep(sleep_between_interactions)
+        if image_count < max_links_to_fetch:
+            thumbnail_result = (wd.find_element_by_xpath("/html/body/div[2]/div/div[2]/div/div[1]/div[1]/div/div[3]/a[" + str(image_count + 1) + "]"))
+            thumbnail_result.click()
+            time.sleep(sleep_between_interactions)
     return image_urls
 
 maxwidth = 1000
