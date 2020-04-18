@@ -58,13 +58,8 @@ def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
 
         # get all image thumbnail results
         iterator = 1
-        thumbnail_results = []
-        while iterator <= 48:
-            thumbnail_results.append(wd.find_elements_by_xpath("/html/body/div[2]/div/div[2]/div/div[1]/div[1]/div/div[3]/a[" + str(iterator) + "]/img"))
-            iterator += 1
-
+        thumbnail_results = (wd.find_elements_by_xpath("/html/body/div[2]/div/div[2]/div/div[1]/div[1]/div/div[3]/a"))
         number_results = len(thumbnail_results)
-        print(thumbnail_results)
 
         print(f"Found: {number_results} search results. Extracting links from {results_start}:{number_results}")
 
