@@ -18,7 +18,7 @@ search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
 list = "dataset/imdbactors.txt"
 manual_search = 'on'
 # manual_search = 'off'
-manual_search_term = 'Margot Robbie'
+manual_search_term = 'Leonardo diCaprio'
 manual_search_term = manual_search_term.replace('_', ' ').split()
 manual_search_term = [term.capitalize() for term in manual_search_term]
 manual_search_term =  (' '.join(manual_search_term))
@@ -47,25 +47,17 @@ def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
         if max_images_page == 0:
             print(f'Link for manual debugging: {search_url}')
         max_links_to_fetch = max_images_page
-        saved_count = 0
     for thumbnail_result in thumbnail_results:
         if(max_links_to_fetch > len(image_urls)):
             try:
                 click_target = (wd.find_element_by_xpath(
-                    imdb_image_path + f"[{saved_count}]"))
+                    imdb_image_path + f"[{str(len(image_urls) + 1)}]"))
                 click_target.click()
                 time.sleep(sleep_between_interactions)
-                try:
-                    actual_image = wd.find_element_by_xpath('/html/head/meta[7]')
-                    time.sleep(sleep_between_interactions)
-                    if actual_image.get_attribute('content') and 'https://m.media-amazon.com/' \
-                            in actual_image.get_attribute('content'):
-                        image_urls.add(actual_image.get_attribute('content'))
-                        print(f'{query}: {str(len(image_urls))}/{max_links_to_fetch} at {thumbnail_result}.')
-                        saved_count += 1
-                except Exception:
-                    print(f'Failed to save: {str(len(image_urls))}/{max_links_to_fetch}.')
-                    continue
+                actual_image = wd.find_element_by_xpath('/html/head/meta[7]')
+                if actual_image.get_attribute('content') and 'http' in actual_image.get_attribute('content'):
+                    image_urls.add(actual_image.get_attribute('content'))
+                    print(f'{query}: {str(len(image_urls))}/{max_links_to_fetch} at {thumbnail_result}.')
             except Exception as e:
                 print(f'Failed click for {query}. Saving what we got this far. - {e}')
                 return image_urls
