@@ -4,16 +4,16 @@ import time, os, requests, io
 from bs4 import BeautifulSoup
 from PIL import Image
 from math import floor
-
-# Macroparameters to set before running
 from selenium.webdriver.common.keys import Keys
-
+# Set before running
 DRIVER_PATH = "chromedriver.exe"
 options = webdriver.ChromeOptions()
 options.add_argument('headless')
 options.add_argument('window-size=1920x1080')
-sample_size = 3
-delay = 1
+sample_size = 14
+run_headless = 'on'
+run_headless = 'off'
+delay = 1 # seconds
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
 
 def bs_get_page(name: str):
@@ -27,46 +27,33 @@ def bs_get_page(name: str):
         return
 
 def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
-                     sleep_between_interactions: 1, search_url: str = search_url_imdb):
+                     sleep_between_interactions: 1, search_url):
+    imdb_image_path = "/html/body/div[2]/div/div[2]/div/div[1]/div[1]/div/div[3]/a"
     image_urls = set()
     wd.get(search_url)
-    page_number = 1
-    while len(image_urls) < max_links_to_fetch:
-        try:
-            # get all image thumbnail results
-            thumbnail_result = (wd.find_elements_by_xpath("/html/body/div[2]/div/div[2]/div/div[1]/div[1]/div/div[3]/a"))
-            max_images_page = len(thumbnail_result)
-            thumbnail_result[0].click()
-            time.sleep(sleep_between_interactions)
-            if max_links_to_fetch > max_images_page and max_images_page < 48:
-                print(f'imdb doesn\'t offer enough pictures: Only {max_images_page} available.')
-                max_links_to_fetch = max_images_page
-            actual_image = wd.find_element_by_xpath('/html/head/meta[7]')
-            if actual_image.get_attribute('content') and 'http' in actual_image.get_attribute('content'):
-                image_urls.add(actual_image.get_attribute('content'))
-            image_count += 1
-            if image_count == 48:
-                page_number += 1
-                wd.get(search_url + f'?page={page_number}')
+    thumbnail_results = (wd.find_elements_by_xpath(imdb_image_path))
+    max_images_page = len(thumbnail_results)
+    if max_links_to_fetch > max_images_page and max_images_page < 48:
+        print(f'imdb doesn\'t offer enough pictures for {query}: Only another {max_images_page} available.')
+        max_links_to_fetch = max_images_page
+    for thumbnail_result in thumbnail_results:
+        if(max_links_to_fetch > len(image_urls)):
+            try:
+                click_target = (wd.find_element_by_xpath(
+                    imdb_image_path + f"[{str(len(image_urls) + 1)}]"))
+                click_target.click()
                 time.sleep(sleep_between_interactions)
-                image_count = 0
-                thumbnail_result = (
-                wd.find_elements_by_xpath("/html/body/div[2]/div/div[2]/div/div[1]/div[1]/div/div[3]/a"))
-                max_images_page = len(thumbnail_result)
-                if max_links_to_fetch > max_images_page and max_images_page < 48:
-                    print(f'imdb doesn\'t offer enough pictures: Only other {max_images_page} available.')
-                    max_links_to_fetch = max_images_page
-            else:
+                actual_image = wd.find_element_by_xpath('/html/head/meta[7]')
+                if actual_image.get_attribute('content') and 'http' in actual_image.get_attribute('content'):
+                    image_urls.add(actual_image.get_attribute('content'))
+                    print(f'{query}: {str(len(image_urls))}/{max_links_to_fetch} at {thumbnail_result}.')
+            except Exception:
+                continue
+            try:
                 wd.execute_script("window.history.go(-1)")
                 time.sleep(sleep_between_interactions)
-
-            if(len(image_urls) < max_links_to_fetch):
-                thumbnail_result = (wd.find_element_by_xpath("/html/body/div[2]/div/div[2]/div/div[1]/div[1]/div/div[3]/a[" + str(image_count + 1) + "]"))
-                thumbnail_result.click()
-            time.sleep(sleep_between_interactions)
-        except Exception as e:
-            print(f"ERROR - Could not download images for {query} - {e}")
-            continue
+            except Exception:
+                continue
     return image_urls
 
 maxwidth = 1000
@@ -96,15 +83,28 @@ def persist_image(folder_path:str,url:str):
         print(f"ERROR - Could not save {url} - {e}")
 
 # stadard download size is 5, can be overriden above
-def search_and_download(search_term: str, driver_path: str, target_path='./dataset/images_imdb', number_images=5):
+def search_and_download(search_term: str, driver_path: str, target_path='./dataset/images_imdb', number_images = 5):
     target_folder = os.path.join(target_path, '_'.join(search_term.split(' ')))
-
     if not os.path.exists(target_folder):
         os.makedirs(target_folder)
 
-    with webdriver.Chrome(executable_path=driver_path, options=options) as wd:
-        res = fetch_image_urls(search_term, number_images, wd=wd, sleep_between_interactions = delay,
-                               search_url = bs_get_page(search_term))
+    number_pages = floor(number_images / 48) + 1
+    page = 1
+    while (page <= number_pages):
+        if page < number_pages:
+            num_img_to_get_this_step = 48
+        elif page == number_pages:
+            num_img_to_get_this_step = (number_images % 48)
+
+        if run_headless is 'on':
+            with webdriver.Chrome(executable_path=driver_path, options=options) as wd:
+                res = fetch_image_urls(search_term, num_img_to_get_this_step, wd=wd, sleep_between_interactions = delay,
+                                       search_url = (bs_get_page(search_term) + f'?page={page}'))
+        elif run_headless is 'off':
+            with webdriver.Chrome(executable_path=driver_path) as wd:
+                res = fetch_image_urls(search_term, num_img_to_get_this_step, wd=wd, sleep_between_interactions = delay,
+                                       search_url = (bs_get_page(search_term) + f'?page={page}'))
+        page += 1
 
     for elem in res:
         persist_image(target_folder, elem)
@@ -113,6 +113,6 @@ def search_and_download(search_term: str, driver_path: str, target_path='./datas
 with open("dataset/imdbactors.txt","r") as input:
     search_terms = input.readlines()
 for item in search_terms:
-    search_term = item.strip()
-    search_and_download(search_term=search_term, driver_path=DRIVER_PATH, number_images= sample_size)
+    search_and_download(search_term=item.strip(),
+                        driver_path=DRIVER_PATH, number_images= sample_size)
 
