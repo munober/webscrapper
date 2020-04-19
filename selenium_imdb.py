@@ -10,21 +10,30 @@ DRIVER_PATH = "chromedriver.exe"
 options = webdriver.ChromeOptions()
 options.add_argument('headless')
 options.add_argument('window-size=1920x1080')
-sample_size = 14
+sample_size = 100
 run_headless = 'on'
 run_headless = 'off'
 delay = 1 # seconds
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
+list = "dataset/imdbactors.txt"
+manual_search = 'on'
+# manual_search = 'off'
+manual_search_term = 'Leonardo diCaprio'
+manual_search_term = manual_search_term.replace('_', ' ').split()
+manual_search_term = [term.capitalize() for term in manual_search_term]
+manual_search_term =  (' '.join(manual_search_term))
+if manual_search is 'on':
+    print(f'Manual search: {manual_search_term}')
+elif manual_search is 'off':
+    print('Automatic search based on given list')
 
 def bs_get_page(name: str):
     response = requests.get(search_url_imdb.format(q=name).replace(" ", "+"))
+    print(f'Searching for: {name}')
     html_soup = BeautifulSoup(response.text, 'html.parser')
     link = html_soup.find('td', class_='result_text')  # div class where actor names listed
-    if (link.a.text) == name:
-        page = link.a.get('href').strip()
-        return ('https://imdb.com'+ page + 'mediaindex') # could also add /?page=1...2...etc
-    else:
-        return
+    page = link.a.get('href').strip()
+    return ('https://imdb.com'+ page + 'mediaindex')
 
 def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
                      sleep_between_interactions: 1, search_url):
@@ -35,6 +44,8 @@ def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
     max_images_page = len(thumbnail_results)
     if max_links_to_fetch > max_images_page and max_images_page < 48:
         print(f'imdb doesn\'t offer enough pictures for {query}: Only another {max_images_page} available.')
+        if max_images_page == 0:
+            print(f'Link for manual debugging: {search_url}')
         max_links_to_fetch = max_images_page
     for thumbnail_result in thumbnail_results:
         if(max_links_to_fetch > len(image_urls)):
@@ -47,12 +58,14 @@ def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
                 if actual_image.get_attribute('content') and 'http' in actual_image.get_attribute('content'):
                     image_urls.add(actual_image.get_attribute('content'))
                     print(f'{query}: {str(len(image_urls))}/{max_links_to_fetch} at {thumbnail_result}.')
-            except Exception:
-                continue
+            except Exception as e:
+                print(f'Failed click for {query}. Saving what we got this far. - {e}')
+                return image_urls
             try:
                 wd.execute_script("window.history.go(-1)")
                 time.sleep(sleep_between_interactions)
-            except Exception:
+            except Exception as e:
+                print(f'Failed going back for {query}. Saving what we got this far. - {e}')
                 continue
     return image_urls
 
@@ -110,9 +123,12 @@ def search_and_download(search_term: str, driver_path: str, target_path='./datas
         persist_image(target_folder, elem)
 
 # Running the search
-with open("dataset/imdbactors.txt","r") as input:
-    search_terms = input.readlines()
-for item in search_terms:
-    search_and_download(search_term=item.strip(),
-                        driver_path=DRIVER_PATH, number_images= sample_size)
-
+if manual_search is 'off':
+    with open(list,"r") as input:
+        search_terms = input.readlines()
+    for item in search_terms:
+        search_and_download(search_term=item.strip(),
+                            driver_path=DRIVER_PATH, number_images=sample_size)
+elif manual_search is 'on':
+    search_and_download(search_term=manual_search_term.strip(),
+                        driver_path=DRIVER_PATH, number_images=sample_size)
