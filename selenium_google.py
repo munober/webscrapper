@@ -9,7 +9,7 @@ DRIVER_PATH = "chromedriver.exe"
 options = webdriver.ChromeOptions()
 options.add_argument('headless')
 options.add_argument('window-size=1920x1080')
-sample_size = 3
+sample_size = 50
 delay = 1
 search_url_google = "https://www.google.com/search?safe=off&site=&tbm=isch&source=hp&q={q}&oq={q}&gs_l=img"
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
