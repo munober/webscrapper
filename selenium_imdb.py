@@ -10,15 +10,16 @@ DRIVER_PATH = "chromedriver.exe"
 options = webdriver.ChromeOptions()
 options.add_argument('headless')
 options.add_argument('window-size=1920x1080')
-sample_size = 30
+sample_size = 40
 run_headless = 'on'
 run_headless = 'off'
-delay = 0.5 # seconds, 1 second is recommended
+delay = 1 # seconds, 1 second is recommended
+timeout = 30 # number of times script will try hitting again after error; script will save work and quit if unsuccesful
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
 list = "dataset/imdbactors.txt"
 manual_search = 'on'
 # manual_search = 'off'
-manual_search_term = 'Margot Robbie'
+manual_search_term = 'Al Pacino'
 manual_search_term = manual_search_term.replace('_', ' ').split()
 manual_search_term = [term.capitalize() for term in manual_search_term]
 manual_search_term =  (' '.join(manual_search_term))
@@ -38,6 +39,7 @@ def bs_get_page(name: str):
 def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
                      sleep_between_interactions: 1, search_url):
     imdb_image_path = "/html/body/div[2]/div/div[2]/div/div[1]/div[1]/div/div[3]/a"
+    timeout_counter = 0
     image_urls = set()
     wd.get(search_url)
     thumbnail_results = (wd.find_elements_by_xpath(imdb_image_path))
@@ -58,14 +60,21 @@ def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
                 if actual_image.get_attribute('content') and 'http' in actual_image.get_attribute('content'):
                     image_urls.add(actual_image.get_attribute('content'))
                     print(f'{query}: {str(len(image_urls))}/{max_links_to_fetch} at {thumbnail_result}.')
+                    timeout_counter = 0
             except Exception as e:
-                print(f'Failed click for {query}. Saving what we got this far. - {e}')
-                return image_urls
+                print(f'Failed click for {query}. Waiting... - {e}')
+                time.sleep(5)
+                timeout_counter += 1
+                if(timeout_counter == timeout):
+                    return image_urls
+                else:
+                    continue
             try:
                 wd.execute_script("window.history.go(-1)")
                 time.sleep(sleep_between_interactions)
             except Exception as e:
-                print(f'Failed going back for {query}. Saving what we got this far. - {e}')
+                print(f'Failed going back for {query}. Waiting... - {e}')
+                time.sleep(5)
                 continue
     return image_urls
 
