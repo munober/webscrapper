@@ -10,7 +10,7 @@ DRIVER_PATH = "chromedriver.exe"
 options = webdriver.ChromeOptions()
 options.add_argument('headless')
 options.add_argument('window-size=1920x1080')
-sample_size = 20
+sample_size = 12
 run_headless = 'on'
 run_headless = 'off'
 delay = 1 # seconds
@@ -18,7 +18,7 @@ search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
 list = "dataset/imdbactors.txt"
 manual_search = 'on'
 # manual_search = 'off'
-manual_search_term = 'Leonardo diCaprio'
+manual_search_term = 'Margot Robbie'
 manual_search_term = manual_search_term.replace('_', ' ').split()
 manual_search_term = [term.capitalize() for term in manual_search_term]
 manual_search_term =  (' '.join(manual_search_term))
