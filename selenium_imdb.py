@@ -10,7 +10,7 @@ DRIVER_PATH = "chromedriver.exe"
 options = webdriver.ChromeOptions()
 options.add_argument('headless')
 options.add_argument('window-size=1920x1080')
-sample_size = 100
+sample_size = 20
 run_headless = 'on'
 run_headless = 'off'
 delay = 1 # seconds
