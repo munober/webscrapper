@@ -9,7 +9,8 @@ from math import floor
 from selenium.webdriver.common.keys import Keys
 
 DRIVER_PATH = "chromedriver.exe"
-sample_size = 80
+sample_size = 3
+delay = 1
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
 
 def bs_get_page(name: str):
@@ -100,7 +101,7 @@ def search_and_download(search_term: str, driver_path: str, target_path='./datas
         os.makedirs(target_folder)
 
     with webdriver.Chrome(executable_path=driver_path) as wd:
-        res = fetch_image_urls(search_term, number_images, wd=wd, sleep_between_interactions=1,
+        res = fetch_image_urls(search_term, number_images, wd=wd, sleep_between_interactions = delay,
                                search_url = bs_get_page(search_term))
 
     for elem in res:
