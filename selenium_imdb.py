@@ -10,10 +10,10 @@ DRIVER_PATH = "chromedriver.exe"
 options = webdriver.ChromeOptions()
 options.add_argument('headless')
 options.add_argument('window-size=1920x1080')
-sample_size = 12
+sample_size = 30
 run_headless = 'on'
 run_headless = 'off'
-delay = 1 # seconds
+delay = 0.5 # seconds, 1 second is recommended
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
 list = "dataset/imdbactors.txt"
 manual_search = 'on'
