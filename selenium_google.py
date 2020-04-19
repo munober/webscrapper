@@ -6,6 +6,9 @@ from math import floor
 
 # Macroparameters to set before running
 DRIVER_PATH = "chromedriver.exe"
+options = webdriver.ChromeOptions()
+options.add_argument('headless')
+options.add_argument('window-size=1920x1080')
 sample_size = 3
 delay = 1
 search_url_google = "https://www.google.com/search?safe=off&site=&tbm=isch&source=hp&q={q}&oq={q}&gs_l=img"
@@ -100,7 +103,7 @@ def search_and_download(search_term: str, driver_path: str, target_path='./datas
     if not os.path.exists(target_folder):
         os.makedirs(target_folder)
 
-    with webdriver.Chrome(executable_path=driver_path) as wd:
+    with webdriver.Chrome(executable_path=driver_path, options=options) as wd:
         res = fetch_image_urls(search_term, number_images, wd=wd, sleep_between_interactions=delay)
         print(res)
 

@@ -9,6 +9,9 @@ from math import floor
 from selenium.webdriver.common.keys import Keys
 
 DRIVER_PATH = "chromedriver.exe"
+options = webdriver.ChromeOptions()
+options.add_argument('headless')
+options.add_argument('window-size=1920x1080')
 sample_size = 3
 delay = 1
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
@@ -25,25 +28,22 @@ def bs_get_page(name: str):
 
 def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
                      sleep_between_interactions: 1, search_url: str = search_url_imdb):
-    # load the page
+    image_urls = set()
     wd.get(search_url)
-    with open('./dataset' + '_'.join(search_term.lower().split(' ')) + '.txt', "w+") as output:
-        image_urls = set()
-        image_count = 0
-        page_number = 1
-        # get all image thumbnail results
-        thumbnail_result = (wd.find_elements_by_xpath("/html/body/div[2]/div/div[2]/div/div[1]/div[1]/div/div[3]/a"))
-        max_images_page = len(thumbnail_result)
-        thumbnail_result[0].click()
-        time.sleep(sleep_between_interactions)
-        if max_links_to_fetch > max_images_page and max_images_page < 48:
-            print(f'imdb doesn\'t offer enough pictures: Only {max_images_page} available.')
-            max_links_to_fetch = max_images_page
-        while len(image_urls) < max_links_to_fetch:
+    page_number = 1
+    while len(image_urls) < max_links_to_fetch:
+        try:
+            # get all image thumbnail results
+            thumbnail_result = (wd.find_elements_by_xpath("/html/body/div[2]/div/div[2]/div/div[1]/div[1]/div/div[3]/a"))
+            max_images_page = len(thumbnail_result)
+            thumbnail_result[0].click()
+            time.sleep(sleep_between_interactions)
+            if max_links_to_fetch > max_images_page and max_images_page < 48:
+                print(f'imdb doesn\'t offer enough pictures: Only {max_images_page} available.')
+                max_links_to_fetch = max_images_page
             actual_image = wd.find_element_by_xpath('/html/head/meta[7]')
             if actual_image.get_attribute('content') and 'http' in actual_image.get_attribute('content'):
                 image_urls.add(actual_image.get_attribute('content'))
-                output.write(actual_image.get_attribute('content') + '\n')
             image_count += 1
             if image_count == 48:
                 page_number += 1
@@ -64,6 +64,9 @@ def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
                 thumbnail_result = (wd.find_element_by_xpath("/html/body/div[2]/div/div[2]/div/div[1]/div[1]/div/div[3]/a[" + str(image_count + 1) + "]"))
                 thumbnail_result.click()
             time.sleep(sleep_between_interactions)
+        except Exception as e:
+            print(f"ERROR - Could not download images for {query} - {e}")
+            continue
     return image_urls
 
 maxwidth = 1000
@@ -71,7 +74,6 @@ maxheight = 1000
 def persist_image(folder_path:str,url:str):
     try:
         image_content = requests.get(url).content
-
     except Exception as e:
         print(f"ERROR - Could not download {url} - {e}")
 
@@ -95,12 +97,12 @@ def persist_image(folder_path:str,url:str):
 
 # stadard download size is 5, can be overriden above
 def search_and_download(search_term: str, driver_path: str, target_path='./dataset/images_imdb', number_images=5):
-    target_folder = os.path.join(target_path, '_'.join(search_term.lower().split(' ')))
+    target_folder = os.path.join(target_path, '_'.join(search_term.split(' ')))
 
     if not os.path.exists(target_folder):
         os.makedirs(target_folder)
 
-    with webdriver.Chrome(executable_path=driver_path) as wd:
+    with webdriver.Chrome(executable_path=driver_path, options=options) as wd:
         res = fetch_image_urls(search_term, number_images, wd=wd, sleep_between_interactions = delay,
                                search_url = bs_get_page(search_term))
 
