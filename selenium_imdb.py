@@ -10,15 +10,15 @@ DRIVER_PATH = "chromedriver.exe"
 options = webdriver.ChromeOptions()
 options.add_argument('headless')
 options.add_argument('window-size=1920x1080')
-sample_size = 40
+sample_size = 20
 run_headless = 'on'
 run_headless = 'off'
-delay = 1 # seconds, 1 second is recommended
+delay = 0.75 # seconds, 1 second is recommended
 timeout = 30 # number of times script will try hitting again after error; script will save work and quit if unsuccesful
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
 list = "dataset/imdbactors.txt"
 manual_search = 'on'
-# manual_search = 'off'
+manual_search = 'off'
 manual_search_term = 'Al Pacino'
 manual_search_term = manual_search_term.replace('_', ' ').split()
 manual_search_term = [term.capitalize() for term in manual_search_term]
