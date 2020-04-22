@@ -185,7 +185,15 @@ def run_search(manual_search):
 
 # Running the whole thing
 if manual_search is 'off' and not os.path.exists(list):
-    print(f'No actors names list found, generating one with {int(args.list)} elements')
-    generate_list(int(args.list))
+    list_len = int(args.list)
+    if list_len > 5000:
+        list_len = 5000
+        print('Maximum actors\' names list length is 5000, set length to 5000')
+    elif list_len == 0:
+        list_len = 1
+        print('Minimum actors\' names list length is 1, set length to 1')
+    print(f'No actors names list found, generating one with {list_len} elements')
+    generate_list(list_len)
+    print('List generated. Run script again to search')
 
 run_search(manual_search)
