@@ -4,29 +4,70 @@ import time, os, requests, io
 from bs4 import BeautifulSoup
 from PIL import Image
 from math import floor
+import argparse
+import click
 from selenium.webdriver.common.keys import Keys
-# Set before running
+
+# Paths and options
 DRIVER_PATH = "chromedriver.exe"
 options = webdriver.ChromeOptions()
 options.add_argument('headless')
 options.add_argument('window-size=1920x1080')
-sample_size = 20
-run_headless = 'on'
+
+"""
+User options:
+help, google/imdb, sample_size, manual/list search, generate list, 
+run_headless, delay, timeout, list, manual_search, search term,
+about, version, github link
+"""
+parser = argparse.ArgumentParser(description='Web Scraper for images on Google and IMDb.')
+
+parser.add_argument(
+    "-v", "--version", action="version",
+    version=f"{parser.prog} version 1.1.0"
+)
+parser.add_argument('-p', '--platform',
+                    help='Choose searching platform: [google, imdb, both]',
+                    default='both')
+parser.add_argument('-s', '--samples',
+                    help='Type in how many samples you want per actor, maximum is 24 for imdb, 50 for google; '
+                         'default is 20', default=20)
+parser.add_argument('-m', '--manual',
+                    help='Type in manual search term or leave empty for using list',
+                    default='list')
+parser.add_argument('-l', '--list',
+                    help='Generate list of actor names; type in how many you want as argument',
+                    default='0')
+parser.add_argument('-t', '--timeout',
+                    help='Number of retries before script gives up after errors, default is 30',
+                    default='30')
+parser.add_argument('-d', '--delay',
+                    help='Number of seconds for delay between page interactions, default is 1',
+                    default='1')
+
+args = parser.parse_args()
+
+sample_size = int(args.samples)
 run_headless = 'off'
-delay = 0.75 # seconds, 1 second is recommended
-timeout = 30 # number of times script will try hitting again after error; script will save work and quit if unsuccesful
-search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
+delay = int(args.delay) # seconds, 1 second is recommended
+timeout = int(args.timeout) # number of times script will try hitting again after error; script will save work and quit if unsuccesful
+
+manual_search_term = args.manual
+if manual_search_term is 'list':
+    manual_search = 'off'
+else:
+    manual_search = 'on'
+
+# TODO: handle list generation as in call it from the other .py file
 list = "dataset/imdbactors.txt"
-manual_search = 'on'
-manual_search = 'off'
-manual_search_term = 'Al Pacino'
+
+maxwidth = 1000
+maxheight = 1000
+
 manual_search_term = manual_search_term.replace('_', ' ').split()
 manual_search_term = [term.capitalize() for term in manual_search_term]
 manual_search_term =  (' '.join(manual_search_term))
-if manual_search is 'on':
-    print(f'Manual search: {manual_search_term}')
-elif manual_search is 'off':
-    print('Automatic search based on given list')
+search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
 
 def bs_get_page(name: str):
     response = requests.get(search_url_imdb.format(q=name).replace(" ", "+"))
@@ -78,8 +119,6 @@ def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
                 continue
     return image_urls
 
-maxwidth = 1000
-maxheight = 1000
 def persist_image(folder_path:str,url:str):
     try:
         image_content = requests.get(url).content
@@ -132,12 +171,18 @@ def search_and_download(search_term: str, driver_path: str, target_path='./datas
         persist_image(target_folder, elem)
 
 # Running the search
-if manual_search is 'off':
-    with open(list,"r") as input:
-        search_terms = input.readlines()
-    for item in search_terms:
-        search_and_download(search_term=item.strip(),
+def run_search(manual_search):
+    if manual_search is 'off':
+        print('Automatic search based on given list')
+        with open(list,"r") as input:
+            search_terms = input.readlines()
+        for item in search_terms:
+            search_and_download(search_term=item.strip(),
+                                driver_path=DRIVER_PATH, number_images=sample_size)
+    elif manual_search is 'on':
+        print(f'Manual search: {manual_search_term}')
+        search_and_download(search_term=manual_search_term.strip(),
                             driver_path=DRIVER_PATH, number_images=sample_size)
-elif manual_search is 'on':
-    search_and_download(search_term=manual_search_term.strip(),
-                        driver_path=DRIVER_PATH, number_images=sample_size)
+
+# Running the whole things
+run_search(manual_search)
