@@ -1,66 +1,35 @@
-from os.path import isdir
-import numpy as np
-import matplotlib.pyplot as plt
-from PIL import Image
-import mtcnn
+import cv2
 import os
-from os.path import isdir
-from numpy import savez_compressed
+from pathlib import Path
+import numpy as np
 
-# Folder paths
-folder = 'dataset/images/'
-dataset_file = 'dataset/numpy_dataset.npz'
+def check_folder(folder):
+    face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+    folderpaths = []
+    for actor in os.listdir(folder):
+        folderpaths.append(f'{folder}/{actor}')
+    for actor in folderpaths:
+        for path in os.listdir(actor):
+            path_parsed = f'{actor}/{path}'
+            try:
+                img = cv2.imread(path_parsed)
+                gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                faces = face_cascade.detectMultiScale(gray, 1.1, 4)
+                if len(faces) == 0:
+                    print(f'DELETED: no face found in {path_parsed}')
+                    os.remove(path_parsed)
+                else:
+                    if not os.path.exists(f'{actor}/cropped/'):
+                        os.makedirs(f'{actor}/cropped/')
+                    (height, width) = img.shape[:2]
+                    for (x, y, w, h) in faces:
+                        # cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
+                        crop_img = img[y:(y+h), x:(x+w)]
+                        cv2.imwrite(f'{actor}/cropped/{path}', crop_img)
+                        print(f'SUCCES: saved cropped version of {actor}/cropped/{path}.jpg')
+            except Exception as e:
+                print(f'Could not load {path_parsed} - e')
+                continue
 
-def extract_face(filename, required_size=(160, 160)):
-	image = Image.open(filename)
-	# Dataset already is RGB, only use if that's not the case
-	# image = image.convert('RGB')
-	results = mtcnn.MTCNN().detect_faces(np.asarray(image))
-	x1, y1, width, height = results[0]['box']
-	x1, y1 = abs(x1), abs(y1) # prevents these from being negative
-	x2, y2 = x1 + width, y1 + height
-	face = np.asarray(image)[y1:y2, x1:x2]
-	image = Image.fromarray(face)
-	image = image.resize(required_size)
-	face_array = np.asarray(image)
-	return face_array
 
-def load_faces(directory): # Loads all faces in a directory
-	faces = list()
-	# enumerate files
-	for filename in os.listdir(directory):
-		path = directory + filename
-		face = extract_face(path)
-		faces.append(face)
-	return faces
 
-def load_dataset(directory): # Loads all different face folders in a bigger folder
-	X, y = list(), list()
-	for subdir in os.listdir(directory):
-		path = directory + subdir + '/'
-		if not isdir(path):
-			continue
-		faces = load_faces(path)
-		labels = [subdir for _ in range(len(faces))]
-		# summarize progress
-		print('>loaded %d examples for class: %s' % (len(faces), subdir))
-		for label in labels:
-			print (label)
-		X.extend(faces)
-		y.extend(labels)
-	return np.asarray(X), np.asarray(y) # return faces and labels in this order
-
-faces, labels = load_dataset(folder)
-print('Data set size: ', faces.shape, labels.shape)
-# savez_compressed(dataset_file, faces, labels)
-iterator = 1
-for face in faces:
-	img = Image.fromarray(face, 'RGB')
-	plt.subplot(4, 15, iterator)
-	plt.axis('off')
-	plt.imshow(face)
-	iterator += 1
-	if not os.path.exists('dataset/cropped/'):
-		os.makedirs('dataset/cropped/')
-	img = img.save('dataset/cropped/' + '/' + str(labels[iterator]) + '_' + str(iterator) + '.jpg')
-plt.show()
