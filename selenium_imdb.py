@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from PIL import Image
 from math import floor
 import argparse
+from namelist_generator import generate_list
 import click
 from selenium.webdriver.common.keys import Keys
 
@@ -24,7 +25,7 @@ parser = argparse.ArgumentParser(description='Web Scraper for images on Google a
 
 parser.add_argument(
     "-v", "--version", action="version",
-    version=f"{parser.prog} version 1.1.0"
+    version=f"{parser.prog} version 1.42.69"
 )
 parser.add_argument('-p', '--platform',
                     help='Choose searching platform: [google, imdb, both]',
@@ -33,11 +34,11 @@ parser.add_argument('-s', '--samples',
                     help='Type in how many samples you want per actor, maximum is 24 for imdb, 50 for google; '
                          'default is 20', default=20)
 parser.add_argument('-m', '--manual',
-                    help='Type in manual search term or leave empty for using list',
+                    help='Type in "manual search term" or leave empty for using list',
                     default='list')
 parser.add_argument('-l', '--list',
                     help='Generate list of actor names; type in how many you want as argument',
-                    default='0')
+                    default='100')
 parser.add_argument('-t', '--timeout',
                     help='Number of retries before script gives up after errors, default is 30',
                     default='30')
@@ -58,9 +59,6 @@ if manual_search_term is 'list':
 else:
     manual_search = 'on'
 
-# TODO: handle list generation as in call it from the other .py file
-list = "dataset/imdbactors.txt"
-
 maxwidth = 1000
 maxheight = 1000
 
@@ -68,6 +66,7 @@ manual_search_term = manual_search_term.replace('_', ' ').split()
 manual_search_term = [term.capitalize() for term in manual_search_term]
 manual_search_term =  (' '.join(manual_search_term))
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
+list = "dataset/imdbactors.txt"
 
 def bs_get_page(name: str):
     response = requests.get(search_url_imdb.format(q=name).replace(" ", "+"))
@@ -184,5 +183,9 @@ def run_search(manual_search):
         search_and_download(search_term=manual_search_term.strip(),
                             driver_path=DRIVER_PATH, number_images=sample_size)
 
-# Running the whole things
+# Running the whole thing
+if manual_search is 'off' and not os.path.exists(list):
+    print(f'No actors names list found, generating one with {int(args.list)} elements')
+    generate_list(int(args.list))
+
 run_search(manual_search)
