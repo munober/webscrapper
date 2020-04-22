@@ -25,7 +25,7 @@ def check_folder(folder):
                     for (x, y, w, h) in faces:
                         # cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
                         crop_img = img[y:(y+h), x:(x+w)]
-                        cv2.imwrite(f'{actor}/cropped/{path}.jpg', crop_img)
+                        cv2.imwrite(f'{actor}/cropped/{path}', crop_img)
                         print(f'SUCCES: saved cropped version of {actor}/cropped/{path}.jpg')
             except Exception as e:
                 print(f'Could not load {path_parsed} - e')
