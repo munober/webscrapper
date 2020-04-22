@@ -45,6 +45,10 @@ parser.add_argument('-t', '--timeout',
 parser.add_argument('-d', '--delay',
                     help='Number of seconds for delay between page interactions, default is 1',
                     default='1')
+parser.add_argument('-f', '--filter',
+                    help='OpenCV face filter. To be used independent of search function, '
+                         'by default turned off. Type -f on to apply to dataset',
+                    default='off')
 
 args = parser.parse_args()
 
@@ -59,8 +63,20 @@ if manual_search_term is 'list':
 else:
     manual_search = 'on'
 
-maxwidth = 1000
-maxheight = 1000
+filter_mode = args.filter
+if filter_mode == 'on':
+    target_path_imdb = './dataset/images_imdb'
+    target_path_google = './dataset/images_google'
+    if os.path.exists(target_path_google):
+        check_folder(target_path_google)
+    else:
+        print('No google dataset folder found')
+    if os.path.exists(target_path_imdb):
+        check_folder(target_path_imdb)
+    else:
+        print('No imdb dataset folder found')
+else:
+    filter_mode = 'off'
 
 manual_search_term = manual_search_term.replace('_', ' ').split()
 manual_search_term = [term.capitalize() for term in manual_search_term]
@@ -190,23 +206,24 @@ def run_search(manual_search, platform):
                             driver_path=DRIVER_PATH, number_images=sample_size)
 
 # Running the whole thing
-if manual_search is 'off' and not os.path.exists(list):
-    list_len = int(args.list)
-    if list_len > 5000:
-        list_len = 5000
-        print('Maximum actors\' names list length is 5000, set length to 5000')
-    elif list_len == 0:
-        list_len = 1
-        print('Minimum actors\' names list length is 1, set length to 1')
-    print(f'No actors names list found, generating one with {list_len} elements')
-    generate_list(list_len)
-    print('SUCCES: List generated')
+if filter_mode is 'off':
+    if manual_search is 'off' and not os.path.exists(list):
+        list_len = int(args.list)
+        if list_len > 5000:
+            list_len = 5000
+            print('Maximum actors\' names list length is 5000, set length to 5000')
+        elif list_len == 0:
+            list_len = 1
+            print('Minimum actors\' names list length is 1, set length to 1')
+        print(f'No actors names list found, generating one with {list_len} elements')
+        generate_list(list_len)
+        print('SUCCES: List generated')
 
-if (str(args.platform) == 'google'):
-    run_search(manual_search, 'google')
-if (str(args.platform) == 'imdb'):
-    run_search(manual_search, 'imdb')
-if (str(args.platform) == 'both'):
-    run_search(manual_search, 'both')
-else:
-    print('Choose one of the following as search platform: [google, imdb, both]')
+    if (str(args.platform) == 'google'):
+        run_search(manual_search, 'google')
+    if (str(args.platform) == 'imdb'):
+        run_search(manual_search, 'imdb')
+    if (str(args.platform) == 'both'):
+        run_search(manual_search, 'both')
+    else:
+        print('Choose one of the following as search platform: [google, imdb, both]')
