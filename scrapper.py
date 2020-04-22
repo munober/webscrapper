@@ -6,7 +6,7 @@ from PIL import Image
 from math import floor
 import argparse
 from namelist_generator import generate_list
-from selenium_google import fetch_image_urls_google
+from google_link_collector import fetch_image_urls_google
 
 # Paths and options
 DRIVER_PATH = "chromedriver.exe"
@@ -141,7 +141,7 @@ def search_and_download(platform: str, search_term: str, driver_path: str, numbe
     target_folder_google = os.path.join(target_path_google, '_'.join(search_term.split(' ')))
     if not os.path.exists(target_folder_imdb):
         os.makedirs(target_folder_imdb)
-    if not os.path.exists(target_path_google):
+    if not os.path.exists(target_folder_google):
         os.makedirs(target_folder_google)
 
     if (platform is 'imdb') or (platform is 'both'):
@@ -199,13 +199,13 @@ if manual_search is 'off' and not os.path.exists(list):
         print('Minimum actors\' names list length is 1, set length to 1')
     print(f'No actors names list found, generating one with {list_len} elements')
     generate_list(list_len)
-    print('List generated. Run script again to search')
+    print('SUCCES: List generated')
 
-if str(args.platform) is 'google':
+if (str(args.platform) == 'google'):
     run_search(manual_search, 'google')
-if str(args.platform) is 'imdb':
+if (str(args.platform) == 'imdb'):
     run_search(manual_search, 'imdb')
-if str(args.platform) is 'both':
+if (str(args.platform) == 'both'):
     run_search(manual_search, 'both')
 else:
-    print('Choose one of the following as -p: [google, imdb, both]')
+    print('Choose one of the following as search platform: [google, imdb, both]')

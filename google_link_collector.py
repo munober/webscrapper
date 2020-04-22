@@ -16,6 +16,8 @@ def fetch_image_urls_google(query: str, max_links_to_fetch: int, wd: webdriver, 
     def scroll_to_end(wd):
         wd.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(sleep_between_interactions)
+
+    print(f'Searching for: {query}')
     wd.get(search_url.format(q=query))
 
     image_urls = set()
@@ -38,6 +40,7 @@ def fetch_image_urls_google(query: str, max_links_to_fetch: int, wd: webdriver, 
             for actual_image in actual_images:
                 if actual_image.get_attribute('src') and 'http' in actual_image.get_attribute('src'):
                     image_urls.add(actual_image.get_attribute('src'))
+                    print(f'{query}: {str(len(image_urls))}/{max_links_to_fetch}')
 
             image_count = len(image_urls)
             if len(image_urls) >= max_links_to_fetch:
