@@ -7,7 +7,7 @@ from math import floor
 import argparse
 from namelist_generator import generate_list
 from google_link_collector import fetch_image_urls_google
-# from faces import filter
+from faces import check_folder
 
 # Paths and options
 DRIVER_PATH = "chromedriver.exe"
