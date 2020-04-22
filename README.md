@@ -1,31 +1,23 @@
 # Webscrapper
 
-Basic webscapping with Selenium, beautiful soup, scrapy (more tools will be investigated) to be used for building ML training image datasets.
-
-Also trying to have a nice working UI with PyQT.
+Basic webscraping with Selenium and Beautiful Soup to be used for building ML training face image datasets.
+The double p is intentional.
 
 ## Installation
 Depending on your setup, you might be missing some Python modules, just
 ```bash
 pip install ...
 ```
-your way through.
+your way through. 
+You might also need to change the browser driver executable. The one included is for Chrome version 80 on Windows.
 
-## Files/Scripts
-scrapper_static.py leverages Beautiful Soup to grab imdb's list of 250 most famous actors and saves them to a list in a txt file.
-scrapper_dynamic.py uses Selenium to download the top you choose how many google image search results of the people in above named txt file.
-faces.py process those faces to crop out the people inside.
+## Use
+```bash
+python scrapper.py 
+```
+The app has a CLI argument parser, check out --help for details.
+
+There are 3 modes of use: automated search (default), manual search (-m "term") and filtering/cropping of faces. Extra functionality built to enhance the results of these modes is available (e.g. automatic name list generation or fine parameter settings).
 
 ## Legality
-Will be read into.
-
-## Avoid getting banned
-Scrapy suggests:
-```
-- rotate your user agent from a pool of well-known ones from browsers (google around to get a list of them)
-- disable cookies (see COOKIES_ENABLED) as some sites may use cookies to spot bot behaviour
-- use download delays (2 or higher). See DOWNLOAD_DELAY setting.
-- if possible, use Google cache to fetch pages, instead of hitting the sites directly
-- use a pool of rotating IPs. For example, the free Tor project or paid services like ProxyMesh. An open source alternative is scrapoxy, a super proxy that you can attach your own proxies to.
-- use a highly distributed downloader that circumvents bans internally, so you can just focus on parsing clean pages. One example of such downloaders is Crawlera
-```
+The app searches for, downloades and processes Google Image Search results and IMDb pictures of actors available freely online and is intented for academic use only.

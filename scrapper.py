@@ -25,7 +25,7 @@ parser = argparse.ArgumentParser(description='Web Scraper for images on Google a
 
 parser.add_argument(
     "-v", "--version", action="version",
-    version=f"{parser.prog} version 1.42.69"
+    version=f"Web scrapper intentional double p version 1.1"
 )
 parser.add_argument('-p', '--platform',
                     help='Choose searching platform: [google, imdb, both]',
