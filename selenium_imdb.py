@@ -50,7 +50,7 @@ args = parser.parse_args()
 
 sample_size = int(args.samples)
 run_headless = 'off'
-delay = args.delay # seconds, 1 second is recommended
+delay = float(args.delay) # seconds, 1 second is recommended
 timeout = int(args.timeout) # number of times script will try hitting again after error; script will save work and quit if unsuccesful
 
 manual_search_term = args.manual
