@@ -63,7 +63,7 @@ def generate_list(number):
             movie_containers = html_soup.find_all('div', class_ = 'lister-item-content') #div class where actor names listed
             for item in movie_containers:
                 actors_formatted.append(item.h3.a.text.strip()) # .strip() removes spaces
-            print('Running on page ', math.floor(index / 50 + 1), '/ 60', end="\r")
+            print('Running on page ', math.floor(index / 50 + 1), f'/ {math.floor(number / 50 + 1)}', end="\r")
             index = index + 50 # iterating on to the next pages
 
     actors_formatted = list(dict.fromkeys(actors_formatted)) #removing duplicates
