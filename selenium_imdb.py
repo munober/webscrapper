@@ -6,8 +6,7 @@ from PIL import Image
 from math import floor
 import argparse
 from namelist_generator import generate_list
-import click
-from selenium.webdriver.common.keys import Keys
+from selenium_google import fetch_image_urls_google
 
 # Paths and options
 DRIVER_PATH = "chromedriver.exe"
@@ -68,7 +67,7 @@ manual_search_term =  (' '.join(manual_search_term))
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
 list = "dataset/imdbactors.txt"
 
-def bs_get_page(name: str):
+def bs_get_page_imdb(name: str):
     response = requests.get(search_url_imdb.format(q=name).replace(" ", "+"))
     print(f'Searching for: {name}')
     html_soup = BeautifulSoup(response.text, 'html.parser')
@@ -76,8 +75,8 @@ def bs_get_page(name: str):
     page = link.a.get('href').strip()
     return ('https://imdb.com'+ page + 'mediaindex')
 
-def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver,
-                     sleep_between_interactions: 1, search_url):
+def fetch_image_urls_imdb(query: str, max_links_to_fetch: int, wd: webdriver,
+                          sleep_between_interactions: 1, search_url):
     imdb_image_path = "/html/body/div[2]/div/div[2]/div/div[1]/div[1]/div/div[3]/a"
     timeout_counter = 0
     image_urls = set()
@@ -129,58 +128,64 @@ def persist_image(folder_path:str,url:str):
         image = Image.open(image_file).convert('RGB')
         file_path = os.path.join(folder_path,hashlib.sha1(image_content).hexdigest()[:10] + '.jpg')
         with open(file_path, 'wb') as f:
-            width, height = image.size
-            aspect_ratio = min(maxwidth / width, maxheight / height)
-            new_width = floor(aspect_ratio * width)
-            new_height = floor(aspect_ratio * height)
-            if width > maxwidth or height > maxheight:
-                image = image.resize((new_width, new_height), Image.ANTIALIAS)
-            width, height = image.size
-            if width < maxwidth and height < maxheight:
-                image.save(f, "JPEG", quality=85)
+            image.save(f, "JPEG", quality=85)
         print(f"SUCCESS - saved {url} - as {file_path}")
     except Exception as e:
         print(f"ERROR - Could not save {url} - {e}")
 
 # stadard download size is 5, can be overriden above
-def search_and_download(search_term: str, driver_path: str, target_path='./dataset/images_imdb', number_images = 5):
-    target_folder = os.path.join(target_path, '_'.join(search_term.split(' ')))
-    if not os.path.exists(target_folder):
-        os.makedirs(target_folder)
+def search_and_download(platform: str, search_term: str, driver_path: str, number_images = 5):
+    target_path_imdb = './dataset/images_imdb'
+    target_path_google = './dataset/images_google'
+    target_folder_imdb = os.path.join(target_path_imdb, '_'.join(search_term.split(' ')))
+    target_folder_google = os.path.join(target_path_google, '_'.join(search_term.split(' ')))
+    if not os.path.exists(target_folder_imdb):
+        os.makedirs(target_folder_imdb)
+    if not os.path.exists(target_path_google):
+        os.makedirs(target_folder_google)
 
-    number_pages = floor(number_images / 48) + 1
-    page = 1
-    while (page <= number_pages):
-        if page < number_pages:
-            num_img_to_get_this_step = 48
-        elif page == number_pages:
-            num_img_to_get_this_step = (number_images % 48)
+    if (platform is 'imdb') or (platform is 'both'):
+        number_pages = floor(number_images / 48) + 1
+        page = 1
+        while (page <= number_pages):
+            if page < number_pages:
+                num_img_to_get_this_step = 48
+            elif page == number_pages:
+                num_img_to_get_this_step = (number_images % 48)
 
-        if run_headless is 'on':
-            with webdriver.Chrome(executable_path=driver_path, options=options) as wd:
-                res = fetch_image_urls(search_term, num_img_to_get_this_step, wd=wd, sleep_between_interactions = delay,
-                                       search_url = (bs_get_page(search_term) + f'?page={page}'))
-        elif run_headless is 'off':
-            with webdriver.Chrome(executable_path=driver_path) as wd:
-                res = fetch_image_urls(search_term, num_img_to_get_this_step, wd=wd, sleep_between_interactions = delay,
-                                       search_url = (bs_get_page(search_term) + f'?page={page}'))
-        page += 1
-
-    for elem in res:
-        persist_image(target_folder, elem)
+            # Currently only running in headful mode (is that even a word)
+            # Headless kinda unstable
+            if run_headless is 'on':
+                with webdriver.Chrome(executable_path=driver_path, options=options) as wd:
+                    res_imdb = fetch_image_urls_imdb(search_term, num_img_to_get_this_step, wd=wd, sleep_between_interactions = delay,
+                                                search_url = (bs_get_page_imdb(search_term) + f'?page={page}'))
+                    for elem in res_imdb:
+                        persist_image(target_folder_imdb, elem)
+            elif run_headless is 'off':
+                with webdriver.Chrome(executable_path=driver_path) as wd:
+                    res_imdb = fetch_image_urls_imdb(search_term, num_img_to_get_this_step, wd=wd, sleep_between_interactions = delay,
+                                                search_url = (bs_get_page_imdb(search_term) + f'?page={page}'))
+                for elem in res_imdb:
+                    persist_image(target_folder_imdb, elem)
+            page += 1
+    if (platform is 'google') or (platform is 'both'):
+        with webdriver.Chrome(executable_path=driver_path) as wd:
+            res_google = fetch_image_urls_google(search_term, number_images, wd=wd, sleep_between_interactions=delay)
+        for elem in res_google:
+            persist_image(target_folder_google, elem)
 
 # Running the search
-def run_search(manual_search):
+def run_search(manual_search, platform):
     if manual_search is 'off':
         print('Automatic search based on given list')
         with open(list,"r") as input:
             search_terms = input.readlines()
         for item in search_terms:
-            search_and_download(search_term=item.strip(),
+            search_and_download(platform=platform, search_term=item.strip(),
                                 driver_path=DRIVER_PATH, number_images=sample_size)
     elif manual_search is 'on':
         print(f'Manual search: {manual_search_term}')
-        search_and_download(search_term=manual_search_term.strip(),
+        search_and_download(platform=platform, search_term=manual_search_term.strip(),
                             driver_path=DRIVER_PATH, number_images=sample_size)
 
 # Running the whole thing
@@ -196,4 +201,11 @@ if manual_search is 'off' and not os.path.exists(list):
     generate_list(list_len)
     print('List generated. Run script again to search')
 
-run_search(manual_search)
+if str(args.platform) is 'google':
+    run_search(manual_search, 'google')
+if str(args.platform) is 'imdb':
+    run_search(manual_search, 'imdb')
+if str(args.platform) is 'both':
+    run_search(manual_search, 'both')
+else:
+    print('Choose one of the following as -p: [google, imdb, both]')
