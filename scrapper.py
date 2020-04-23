@@ -10,7 +10,8 @@ from google_link_collector import fetch_image_urls_google
 from faces import check_folder
 
 # Paths and options
-DRIVER_PATH = "chromedriver.exe"
+DRIVER_PATH = 'chromedriver' # Linux; might need to change for your own system
+# DRIVER_PATH = "chromedriver_win.exe" # Windows
 options = webdriver.ChromeOptions()
 options.add_argument('headless')
 options.add_argument('window-size=1920x1080')

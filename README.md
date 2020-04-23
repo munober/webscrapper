@@ -6,10 +6,10 @@ The double p is intentional.
 ## Installation
 Depending on your setup, you might be missing some Python modules, just
 ```bash
-pip install ...
+sudo pip install ...
 ```
-your way through. 
-You might also need to change the browser driver executable. The one included is for Chrome version 80 on Windows.
+your way through. The main things you might be missing are selenium, numpy and opencv-python.
+You might also need to change the browser driver executable, included in the repo are web drivers for chrome on Windows and Linux. Find yours at (https://chromedriver.storage.googleapis.com/index.html), download and unzip, then add to the project folder or add to system path. If you are using Firefox, the process is similar, just google for Selenium python Firefox.
 
 ## Use
 ```bash
@@ -17,7 +17,7 @@ python scrapper.py
 ```
 The app has a CLI argument parser, check out --help for details.
 
-There are 3 modes of use: automated search (default), manual search (-m "term") and filtering/cropping of faces. Extra functionality built to enhance the results of these modes is available (e.g. automatic name list generation or fine parameter settings).
+There are 3 modes of use: automated search (default), manual search (-m "search term") and filtering/cropping (-f on) of faces. Extra functionality built to enhance the results of these modes is available (e.g. automatic name list generation or fine parameter settings).
 
 ## Legality
 The app searches for, downloades and processes Google Image Search results and IMDb pictures of actors available freely online and is intented for academic use only.
