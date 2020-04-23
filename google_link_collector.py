@@ -1,15 +1,5 @@
-import hashlib
 from selenium import webdriver
-import time, os, requests, io
-from PIL import Image
-from math import floor
-
-DRIVER_PATH = "chromedriver.exe"
-# options = webdriver.ChromeOptions()
-# options.add_argument('headless')
-# options.add_argument('window-size=1920x1080')
-# sample_size = 10
-# delay = 0.1
+import time
 
 
 def fetch_image_urls_google(
@@ -17,7 +7,7 @@ def fetch_image_urls_google(
     max_links_to_fetch: int,
     wd: webdriver,
     sleep_between_interactions: 1,
-    search_url: str = "https://www.google.com/search?safe=off&site=&tbm=isch&source=hp&q={q}&oq={q}&gs_l=img",
+    search_url: str = "https://www.google.com/search?safe=off&site=&tbm=isch&source=hp&q={q}&oq={q}&gs_l=img&tbs=sur:fc",
 ):
     def scroll_to_end(wd):
         wd.execute_script("window.scrollTo(0, document.body.scrollHeight);")

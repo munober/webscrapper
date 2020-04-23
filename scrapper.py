@@ -115,9 +115,6 @@ if filter_mode:
     else:
         print("No imdb dataset folder found")
 
-# manual_search_term = manual_search_term.replace('_', ' ').split()
-# manual_search_term = [term.capitalize() for term in manual_search_term]
-# manual_search_term =  (' '.join(manual_search_term))
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
 list = "dataset/imdbactors.txt"
 
@@ -304,7 +301,7 @@ if not filter_mode:
             print("Minimum actors' names list length is 1, set length to 1")
         print(f"No actors names list found, generating one with {list_len} elements")
         generate_list(list_len)
-        print("SUCCES: List generated")
+        print("SUCCESS: List generated")
 
     if str(args.platform) == "google":
         run_search(manual_search, "google")
