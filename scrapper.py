@@ -1,3 +1,6 @@
+#! /bin/python
+
+import os
 import hashlib
 from selenium import webdriver
 import time, os, requests, io
@@ -10,15 +13,18 @@ from google_link_collector import fetch_image_urls_google
 from faces import check_folder
 
 # Paths and options
-DRIVER_PATH = 'chromedriver' # Linux; might need to change for your own system
-# DRIVER_PATH = "chromedriver_win.exe" # Windows
+if os.name == 'nt':
+    DRIVER_PATH = 'resources/chromedriver_win.exe'  # Windows
+else: # linux
+    DRIVER_PATH = 'resources/chromedriver' # Linux; might need to change for your own system
+
 options = webdriver.ChromeOptions()
 options.add_argument('headless')
 options.add_argument('window-size=1920x1080')
 
 """
 User options:
-help, google/imdb, sample_size, manual/list search, generate list, 
+help, google/imdb, sample_size, manual/list search, generate list,
 run_headless, delay, timeout, list, manual_search, search term,
 about, version, github link
 """
@@ -31,41 +37,35 @@ parser.add_argument(
 parser.add_argument('-p', '--platform',
                     help='Choose searching platform: [google, imdb, both]',
                     default='both')
-parser.add_argument('-s', '--samples',
+parser.add_argument('-s', '--sample-size', type=int,
                     help='Type in how many samples you want per actor, maximum is 24 for imdb, 50 for google; '
                          'default is 20', default=20)
-parser.add_argument('-m', '--manual',
-                    help='Type in "manual search term" or leave empty for using list',
-                    default='list')
+parser.add_argument('-m', '--manual', action='store', type=str,
+                    help='Type in "manual search term" or leave empty for using list')
 parser.add_argument('-l', '--list',
                     help='Generate list of actor names; type in how many you want as argument',
                     default='100')
-parser.add_argument('-t', '--timeout',
+parser.add_argument('-t', '--timeout', type=int,
                     help='Number of retries before script gives up after errors, default is 30',
                     default='30')
-parser.add_argument('-d', '--delay',
+parser.add_argument('-d', '--delay', type=float,
                     help='Number of seconds for delay between page interactions, default is 1',
                     default='1')
-parser.add_argument('-f', '--filter',
+parser.add_argument('-f', '--filter', action='store_true',
                     help='OpenCV face filter. To be used independent of search function, '
-                         'by default turned off. Type -f on to apply to dataset',
-                    default='off')
+                         'by default turned off. Type -f on to apply to dataset')
+parser.add_argument('-e', '--headless', action='store_true', help='Run in headless more')
 
 args = parser.parse_args()
 
-sample_size = int(args.samples)
-run_headless = 'off'
-delay = float(args.delay) # seconds, 1 second is recommended
-timeout = int(args.timeout) # number of times script will try hitting again after error; script will save work and quit if unsuccesful
-
-manual_search_term = args.manual
-if manual_search_term is 'list':
-    manual_search = 'off'
-else:
-    manual_search = 'on'
-
+sample_size = args.sample_size
+run_headless = args.headless
+delay = args.delay # seconds, 1 second is recommended
+timeout = args.timeout # number of times script will try hitting again after error; script will save work and quit if unsuccesful
+manual_search = args.manual
 filter_mode = args.filter
-if filter_mode == 'on':
+
+if filter_mode:
     target_path_imdb = './dataset/images_imdb'
     target_path_google = './dataset/images_google'
     if os.path.exists(target_path_google):
@@ -76,12 +76,10 @@ if filter_mode == 'on':
         check_folder(target_path_imdb)
     else:
         print('No imdb dataset folder found')
-else:
-    filter_mode = 'off'
 
-manual_search_term = manual_search_term.replace('_', ' ').split()
-manual_search_term = [term.capitalize() for term in manual_search_term]
-manual_search_term =  (' '.join(manual_search_term))
+# manual_search_term = manual_search_term.replace('_', ' ').split()
+# manual_search_term = [term.capitalize() for term in manual_search_term]
+# manual_search_term =  (' '.join(manual_search_term))
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
 list = "dataset/imdbactors.txt"
 
@@ -162,7 +160,7 @@ def search_and_download(platform: str, search_term: str, driver_path: str, numbe
     if not os.path.exists(target_folder_google):
         os.makedirs(target_folder_google)
 
-    if (platform is 'imdb') or (platform is 'both'):
+    if (platform == 'imdb') or (platform == 'both'):
         number_pages = floor(number_images / 48) + 1
         page = 1
         while (page <= number_pages):
@@ -173,20 +171,20 @@ def search_and_download(platform: str, search_term: str, driver_path: str, numbe
 
             # Currently only running in headful mode (is that even a word)
             # Headless kinda unstable
-            if run_headless is 'on':
+            if run_headless:
                 with webdriver.Chrome(executable_path=driver_path, options=options) as wd:
                     res_imdb = fetch_image_urls_imdb(search_term, num_img_to_get_this_step, wd=wd, sleep_between_interactions = delay,
                                                 search_url = (bs_get_page_imdb(search_term) + f'?page={page}'))
                     for elem in res_imdb:
                         persist_image(target_folder_imdb, elem)
-            elif run_headless is 'off':
+            elif not run_headless:
                 with webdriver.Chrome(executable_path=driver_path) as wd:
                     res_imdb = fetch_image_urls_imdb(search_term, num_img_to_get_this_step, wd=wd, sleep_between_interactions = delay,
                                                 search_url = (bs_get_page_imdb(search_term) + f'?page={page}'))
                 for elem in res_imdb:
                     persist_image(target_folder_imdb, elem)
             page += 1
-    if (platform is 'google') or (platform is 'both'):
+    if (platform == 'google') or (platform == 'both'):
         with webdriver.Chrome(executable_path=driver_path) as wd:
             res_google = fetch_image_urls_google(search_term, number_images, wd=wd, sleep_between_interactions=delay)
         for elem in res_google:
@@ -194,21 +192,21 @@ def search_and_download(platform: str, search_term: str, driver_path: str, numbe
 
 # Running the search
 def run_search(manual_search, platform):
-    if manual_search is 'off':
+    if not manual_search:
         print('Automatic search based on given list')
         with open(list,"r") as input:
             search_terms = input.readlines()
         for item in search_terms:
             search_and_download(platform=platform, search_term=item.strip(),
                                 driver_path=DRIVER_PATH, number_images=sample_size)
-    elif manual_search is 'on':
-        print(f'Manual search: {manual_search_term}')
-        search_and_download(platform=platform, search_term=manual_search_term.strip(),
+    elif manual_search:
+        print(f'Manual search: {manual_search}')
+        search_and_download(platform=platform, search_term=manual_search.strip(),
                             driver_path=DRIVER_PATH, number_images=sample_size)
 
 # Running the whole thing
-if filter_mode is 'off':
-    if manual_search is 'off' and not os.path.exists(list):
+if not filter_mode:
+    if not manual_search and not os.path.exists(list):
         list_len = int(args.list)
         if list_len > 5000:
             list_len = 5000
@@ -222,9 +220,9 @@ if filter_mode is 'off':
 
     if (str(args.platform) == 'google'):
         run_search(manual_search, 'google')
-    if (str(args.platform) == 'imdb'):
+    elif (str(args.platform) == 'imdb'):
         run_search(manual_search, 'imdb')
-    if (str(args.platform) == 'both'):
+    elif (str(args.platform) == 'both'):
         run_search(manual_search, 'both')
     else:
         print('Choose one of the following as search platform: [google, imdb, both]')
