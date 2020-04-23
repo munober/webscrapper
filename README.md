@@ -5,15 +5,17 @@ The double p is intentional.
 
 ## Installation
 Depending on your setup, you might be missing some Python modules, just
+
 ```bash
-sudo pip install ...
+sudo pip install -r requirements.txt
 ```
-your way through. The main things you might be missing are selenium, numpy and opencv-python.
 You might also need to change the browser driver executable, included in the repo are web drivers for chrome on Windows and Linux. Find yours at (https://chromedriver.storage.googleapis.com/index.html), download and unzip, then add to the project folder or add to system path. If you are using Firefox, the process is similar, just google for Selenium python Firefox.
 
 ## Use
+
+Example usage:
 ```bash
-python scrapper.py 
+python scrapper.py -p google -m "brad pitt"
 ```
 The app has a CLI argument parser, check out --help for details.
 
