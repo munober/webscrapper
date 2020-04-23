@@ -50,7 +50,7 @@ parser.add_argument(
     "-s",
     "--sample-size",
     type=int,
-    help="Type in how many samples you want per actor, maximum is 24 for imdb, 50 for google; "
+    help="Type in how many samples you want per actor, recommended maximum is 24 for imdb, 50 for google "
     "default is 20",
     default=20,
 )
@@ -66,6 +66,12 @@ parser.add_argument(
     "--list",
     help="Generate list of actor names; type in how many you want as argument",
     default="100",
+)
+parser.add_argument(
+    "-c",
+    "--custom",
+    help="Use custom names list for search, path to file as argument",
+    default="",
 )
 parser.add_argument(
     "-t",
@@ -102,6 +108,7 @@ timeout = (
 )  # number of times script will try hitting again after error; script will save work and quit if unsuccesful
 manual_search = args.manual
 filter_mode = args.filter
+custom_list = args.custom
 
 if filter_mode:
     target_path_imdb = "./dataset/images_imdb"
@@ -269,16 +276,31 @@ def search_and_download(
 # Running the search
 def run_search(manual_search, platform):
     if not manual_search:
-        print("Automatic search based on given list")
-        with open(list, "r") as input:
-            search_terms = input.readlines()
-        for item in search_terms:
-            search_and_download(
-                platform=platform,
-                search_term=item.strip(),
-                driver_path=DRIVER_PATH,
-                number_images=sample_size,
-            )
+        if custom_list == "":
+            print("Search based on automatically generated names list")
+            with open(list, "r") as input:
+                search_terms = input.readlines()
+            for item in search_terms:
+                search_and_download(
+                    platform=platform,
+                    search_term=item.strip(),
+                    driver_path=DRIVER_PATH,
+                    number_images=sample_size,
+                )
+        elif custom_list != "":
+            if not os.path.exists(custom_list):
+                print("No file found at given path")
+            else:
+                print(f"Search based on given custom list at {custom_list}")
+                with open(custom_list, "r") as input:
+                    search_terms = input.readlines()
+                for item in search_terms:
+                    search_and_download(
+                        platform=platform,
+                        search_term=item.strip(),
+                        driver_path=DRIVER_PATH,
+                        number_images=sample_size,
+                    )
     elif manual_search:
         print(f"Manual search: {manual_search}")
         search_and_download(
@@ -291,7 +313,7 @@ def run_search(manual_search, platform):
 
 # Running the whole thing
 if not filter_mode:
-    if not manual_search and not os.path.exists(list):
+    if not manual_search and not os.path.exists(list) and custom_list == "":
         list_len = int(args.list)
         if list_len > 5000:
             list_len = 5000
