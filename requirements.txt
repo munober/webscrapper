@@ -1,3 +1,4 @@
 selenium
 numpy
 opencv-python
+black

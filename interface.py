@@ -15,6 +15,7 @@ from PyQt5.QtWidgets import QWidget
 
 ERROR_MSG = "ERROR"
 
+
 class PyCalcUi(QMainWindow):
     """PyCalc's View (GUI)."""
 
@@ -103,6 +104,7 @@ def evaluateExpression(expression):
 
     return result
 
+
 # Create a Controller class to connect the GUI and the model
 class PyCalcCtrl:
     """PyCalc's Controller."""
@@ -137,6 +139,7 @@ class PyCalcCtrl:
         self._view.display.returnPressed.connect(self._calculateResult)
         self._view.buttons["C"].clicked.connect(self._view.clearDisplay)
 
+
 def main():
     """Main function."""
     # Create an instance of `QApplication`
@@ -149,6 +152,7 @@ def main():
     PyCalcCtrl(model=model, view=view)
     # Execute calculator's main loop
     sys.exit(pycalc.exec_())
+
 
 if __name__ == "__main__":
     main()

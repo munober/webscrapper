@@ -11,13 +11,19 @@ DRIVER_PATH = "chromedriver.exe"
 # sample_size = 10
 # delay = 0.1
 
-def fetch_image_urls_google(query: str, max_links_to_fetch: int, wd: webdriver, sleep_between_interactions: 1,
-                            search_url: str = "https://www.google.com/search?safe=off&site=&tbm=isch&source=hp&q={q}&oq={q}&gs_l=img"):
+
+def fetch_image_urls_google(
+    query: str,
+    max_links_to_fetch: int,
+    wd: webdriver,
+    sleep_between_interactions: 1,
+    search_url: str = "https://www.google.com/search?safe=off&site=&tbm=isch&source=hp&q={q}&oq={q}&gs_l=img",
+):
     def scroll_to_end(wd):
         wd.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(sleep_between_interactions)
 
-    print(f'Searching for: {query}')
+    print(f"Searching for: {query}")
     wd.get(search_url.format(q=query))
 
     image_urls = set()
@@ -27,7 +33,9 @@ def fetch_image_urls_google(query: str, max_links_to_fetch: int, wd: webdriver, 
         scroll_to_end(wd)
         thumbnail_results = wd.find_elements_by_css_selector("img.Q4LuWd")
         number_results = len(thumbnail_results)
-        print(f"Found: {number_results} search results. Extracting links from {results_start}:{number_results}")
+        print(
+            f"Found: {number_results} search results. Extracting links from {results_start}:{number_results}"
+        )
         for img in thumbnail_results[results_start:number_results]:
             try:
                 img.click()
@@ -36,11 +44,13 @@ def fetch_image_urls_google(query: str, max_links_to_fetch: int, wd: webdriver, 
                 continue
 
             # extracting urls
-            actual_images = wd.find_elements_by_css_selector('img.n3VNCb')
+            actual_images = wd.find_elements_by_css_selector("img.n3VNCb")
             for actual_image in actual_images:
-                if actual_image.get_attribute('src') and 'http' in actual_image.get_attribute('src'):
-                    image_urls.add(actual_image.get_attribute('src'))
-                    print(f'{query}: {str(len(image_urls))}/{max_links_to_fetch}')
+                if actual_image.get_attribute(
+                    "src"
+                ) and "http" in actual_image.get_attribute("src"):
+                    image_urls.add(actual_image.get_attribute("src"))
+                    print(f"{query}: {str(len(image_urls))}/{max_links_to_fetch}")
 
             image_count = len(image_urls)
             if len(image_urls) >= max_links_to_fetch:
@@ -57,6 +67,7 @@ def fetch_image_urls_google(query: str, max_links_to_fetch: int, wd: webdriver, 
         results_start = len(thumbnail_results)
 
     return image_urls
+
 
 # def persist_image(folder_path:str,url:str):
 #     try:
@@ -94,4 +105,3 @@ def fetch_image_urls_google(query: str, max_links_to_fetch: int, wd: webdriver, 
 # for item in search_terms:
 #     search_term = item.strip()
 #     search_and_download(search_term=search_term, driver_path=DRIVER_PATH, number_images= sample_size)
-
