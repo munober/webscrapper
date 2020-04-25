@@ -10,7 +10,7 @@ from math import floor
 import argparse
 from namelist_generator import generate_list
 from google_link_collector import fetch_image_urls_google
-from faces import check_folder
+from faces import check_folder, preprocess_image
 
 # Paths and options
 if os.name == "nt":
@@ -95,7 +95,36 @@ parser.add_argument(
     "by default turned off. Type -f on to apply to dataset",
 )
 parser.add_argument(
-    "-e", "--headless", action="store_true", help="Run in headless more"
+    "-e",
+    "--headless",
+    action="store_true",
+    help="Run in headless more"
+)
+parser.add_argument(
+    "-pp",
+    "--preprocess",
+    action="store_true",
+    help="Run preprocessing mode"
+)
+parser.add_argument(
+    "-w",
+    "--width",
+    type=int,
+    help="Set image preprocessing width",
+    default="0"
+)
+parser.add_argument(
+    "-ht",
+    "--height",
+    type=int,
+    help="Set image preprocessing height",
+    default="0"
+)
+parser.add_argument(
+    "-gs",
+    "--grayscale",
+    action="store_true",
+    help="Set preprocessing color to grayscale"
 )
 
 args = parser.parse_args()
@@ -108,11 +137,14 @@ timeout = (
 )  # number of times script will try hitting again after error; script will save work and quit if unsuccesful
 manual_search = args.manual
 filter_mode = args.filter
+preprocess_mode = args.preprocess
 custom_list = args.custom
+target_path_dataset = "./dataset"
 
 if filter_mode:
     target_path_imdb = "./dataset/images_imdb"
     target_path_google = "./dataset/images_google"
+    print("Entering filter mode: will delete all non-face images and add a cropped folder for each actor")
     if os.path.exists(target_path_google):
         check_folder(target_path_google)
     else:
@@ -121,6 +153,25 @@ if filter_mode:
         check_folder(target_path_imdb)
     else:
         print("No imdb dataset folder found")
+    if os.path.exists(target_path_dataset):
+        check_folder(folder=target_path_dataset)
+    else:
+        os.makedirs(target_path_dataset)
+        print("ERROR: To filter, add images to the dataset folder")
+elif preprocess_mode:
+    str = " "
+    if args.grayscale:
+        str = "and convert to grayscale"
+    print(f"Entering pre-processing mode: will change image size {str}")
+    if os.path.exists(target_path_dataset):
+        preprocess_image(folder=target_path_dataset,
+                         width=args.width,
+                         height=args.height,
+                         grayscale=args.grayscale);
+    else:
+        os.makedirs(target_path_dataset)
+        print("Add the images you want to preprocess in the dataset folder")
+
 
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
 list = "dataset/imdbactors.txt"
@@ -312,7 +363,7 @@ def run_search(manual_search, platform):
 
 
 # Running the whole thing
-if not filter_mode:
+if (not filter_mode) and (not preprocess_mode):
     if not manual_search and not os.path.exists(list) and custom_list == "":
         list_len = int(args.list)
         if list_len > 5000:
