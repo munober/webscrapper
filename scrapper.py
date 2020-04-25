@@ -95,7 +95,30 @@ parser.add_argument(
     "by default turned off. Type -f on to apply to dataset",
 )
 parser.add_argument(
-    "-e", "--headless", action="store_true", help="Run in headless more"
+    "-e",
+    "--headless",
+    action="store_true",
+    help="Run in headless more"
+)
+parser.add_argument(
+    "-w",
+    "--width",
+    type=int,
+    help="Set image preprocessing width",
+    default="0"
+)
+parser.add_argument(
+    "-hg",
+    "--height",
+    type=int,
+    help="Set image preprocessing height",
+    default="0"
+)
+parser.add_argument(
+    "-gs",
+    "--grayscale",
+    action="store_true",
+    help="Set color to grayscale"
 )
 
 args = parser.parse_args()
