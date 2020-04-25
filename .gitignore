@@ -1,6 +1,8 @@
 dataset
 *.txt
 .idea
+*.zip
+
 widgets
 test.py
 # Byte-compiled / optimized / DLL files

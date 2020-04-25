@@ -11,6 +11,7 @@ import argparse
 from namelist_generator import generate_list
 from google_link_collector import fetch_image_urls_google
 from faces import check_folder, preprocess_image
+from zipfile import ZipFile
 
 # Paths and options
 if os.name == "nt":
@@ -126,7 +127,12 @@ parser.add_argument(
     action="store_true",
     help="Set preprocessing color to grayscale"
 )
-
+parser.add_argument(
+    "-z",
+    "--zip",
+    action="store_true",
+    help="Add dataset folder into zipfile"
+)
 args = parser.parse_args()
 
 sample_size = args.sample_size
@@ -138,6 +144,7 @@ timeout = (
 manual_search = args.manual
 filter_mode = args.filter
 preprocess_mode = args.preprocess
+zip_mode = args.zip
 custom_list = args.custom
 target_path_imdb = "./dataset/images_imdb"
 target_path_google = "./dataset/images_google"
@@ -185,6 +192,19 @@ elif preprocess_mode:
             print("Add the images you want to preprocess in the dataset folder")
     else:
         print("You have to set the width and height arguments first")
+elif zip_mode:
+    if os.path.exists(target_path_dataset):
+        try:
+            with ZipFile('dataset_zipped.zip', 'w') as zipObj:
+                for folderName, subfolders, filenames in os.walk(target_path_dataset):
+                    for filename in filenames:
+                        filePath = os.path.join(folderName, filename)
+                        zipObj.write(filePath)
+        except Exception as e:
+            print(f"Could not zip dataset - {e}")
+    else:
+        os.makedirs(target_path_dataset)
+        print("no dataset folder found. Created dataset folder. Fill this folder and try again")
 
 
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
@@ -377,7 +397,7 @@ def run_search(manual_search, platform):
 
 
 # Running the whole thing
-if (not filter_mode) and (not preprocess_mode):
+if (not filter_mode) and (not preprocess_mode) and (not zip_mode):
     if not manual_search and not os.path.exists(list) and custom_list == "":
         list_len = int(args.list)
         if list_len > 5000:
