@@ -139,11 +139,12 @@ manual_search = args.manual
 filter_mode = args.filter
 preprocess_mode = args.preprocess
 custom_list = args.custom
+target_path_imdb = "./dataset/images_imdb"
+target_path_google = "./dataset/images_google"
 target_path_dataset = "./dataset"
 
 if filter_mode:
-    target_path_imdb = "./dataset/images_imdb"
-    target_path_google = "./dataset/images_google"
+
     print("Entering filter mode: will delete all non-face images and add a cropped folder for each actor")
     if os.path.exists(target_path_google):
         check_folder(target_path_google)
@@ -159,18 +160,31 @@ if filter_mode:
         os.makedirs(target_path_dataset)
         print("ERROR: To filter, add images to the dataset folder")
 elif preprocess_mode:
-    str = " "
-    if args.grayscale:
-        str = "and convert to grayscale"
-    print(f"Entering pre-processing mode: will change image size {str}")
-    if os.path.exists(target_path_dataset):
-        preprocess_image(folder=target_path_dataset,
-                         width=args.width,
-                         height=args.height,
-                         grayscale=args.grayscale);
+    if args.width != 0 and args.height != 0:
+        str = " "
+        if args.grayscale:
+            str = "and convert to grayscale"
+        print(f"Entering pre-processing mode: will change image size {str}")
+        if os.path.exists(target_path_imdb):
+            preprocess_image(folder=target_path_imdb,
+                             width=args.width,
+                             height=args.height,
+                             grayscale=args.grayscale);
+        if os.path.exists(target_path_google):
+            preprocess_image(folder=target_path_google,
+                             width=args.width,
+                             height=args.height,
+                             grayscale=args.grayscale);
+        if os.path.exists(target_path_dataset):
+            preprocess_image(folder=target_path_dataset,
+                             width=args.width,
+                             height=args.height,
+                             grayscale=args.grayscale);
+        else:
+            os.makedirs(target_path_dataset)
+            print("Add the images you want to preprocess in the dataset folder")
     else:
-        os.makedirs(target_path_dataset)
-        print("Add the images you want to preprocess in the dataset folder")
+        print("You have to set the width and height arguments first")
 
 
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
