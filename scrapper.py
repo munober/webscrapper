@@ -39,7 +39,7 @@ parser.add_argument(
     "-v",
     "--version",
     action="version",
-    version=f"Web scrapper intentional double p version 1.1",
+    version=f"Web scrapper intentional double p version 1.2",
 )
 parser.add_argument(
     "-p",
