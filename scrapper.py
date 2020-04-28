@@ -2,6 +2,9 @@
 
 import os
 import hashlib
+import sys
+
+from PyQt5.QtWidgets import *
 from selenium import webdriver
 import time, os, requests, io
 from bs4 import BeautifulSoup
@@ -12,6 +15,7 @@ from namelist_generator import generate_list
 from google_link_collector import fetch_image_urls_google
 from faces import check_folder, preprocess_image
 from zipfile import ZipFile
+from layout import Ui_Dialog
 
 # Paths and options
 if os.name == "nt":
@@ -133,6 +137,13 @@ parser.add_argument(
     action="store_true",
     help="Add dataset folder into zipfile"
 )
+parser.add_argument(
+    "-i",
+    "--gui",
+    action="store_true",
+    help="Start in GUI mode"
+)
+
 args = parser.parse_args()
 
 sample_size = args.sample_size
@@ -145,13 +156,17 @@ manual_search = args.manual
 filter_mode = args.filter
 preprocess_mode = args.preprocess
 zip_mode = args.zip
+gui_mode = args.gui
+search_mode = False
 custom_list = args.custom
 target_path_imdb = "./dataset/images_imdb"
 target_path_google = "./dataset/images_google"
 target_path_dataset = "./dataset"
 
-if filter_mode:
+if (not filter_mode) and (not preprocess_mode) and (not zip_mode):
+    search_mode = True
 
+if filter_mode:
     print("Entering filter mode: will delete all non-face images and add a cropped folder for each actor")
     if os.path.exists(target_path_google):
         check_folder(target_path_google)
@@ -210,7 +225,6 @@ elif zip_mode:
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
 list = "dataset/imdbactors.txt"
 
-
 def bs_get_page_imdb(name: str):
     response = requests.get(search_url_imdb.format(q=name).replace(" ", "+"))
     print(f"Searching for: {name}")
@@ -220,7 +234,6 @@ def bs_get_page_imdb(name: str):
     )  # div class where actor names listed
     page = link.a.get("href").strip()
     return "https://imdb.com" + page + "mediaindex"
-
 
 def fetch_image_urls_imdb(
     query: str,
@@ -296,7 +309,7 @@ def persist_image(folder_path: str, url: str):
         print(f"ERROR - Could not save {url} - {e}")
 
 
-# stadard download size is 5, can be overriden above
+# standard download size is 5
 def search_and_download(
     platform: str, search_term: str, driver_path: str, number_images=5
 ):
@@ -395,9 +408,21 @@ def run_search(manual_search, platform):
             number_images=sample_size,
         )
 
+# GUI related stuff
+def run_gui():
+    app = QApplication([])
+    Dialog = QDialog()
+    ui = Ui_Dialog()
+    ui.setupUi(Dialog)
+    Dialog.show()
+    sys.exit(app.exec_())
 
-# Running the whole thing
-if (not filter_mode) and (not preprocess_mode) and (not zip_mode):
+if gui_mode:
+    search_mode = False
+    run_gui()
+
+# Running search mode
+if search_mode:
     if not manual_search and not os.path.exists(list) and custom_list == "":
         list_len = int(args.list)
         if list_len > 5000:

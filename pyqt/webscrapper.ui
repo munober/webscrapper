@@ -26,32 +26,19 @@
     <enum>Qt::Horizontal</enum>
    </property>
    <property name="standardButtons">
-    <set>QDialogButtonBox::Abort|QDialogButtonBox::Help|QDialogButtonBox::Ok|QDialogButtonBox::RestoreDefaults|QDialogButtonBox::Save</set>
+    <set>QDialogButtonBox::Close|QDialogButtonBox::Help|QDialogButtonBox::RestoreDefaults</set>
    </property>
    <property name="centerButtons">
     <bool>false</bool>
    </property>
   </widget>
-  <widget class="QProgressBar" name="progressBar">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>330</y>
-     <width>118</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="value">
-    <number>24</number>
-   </property>
-  </widget>
   <widget class="QTabWidget" name="tabWidget">
    <property name="geometry">
     <rect>
-     <x>10</x>
+     <x>20</x>
      <y>10</y>
      <width>481</width>
-     <height>211</height>
+     <height>261</height>
     </rect>
    </property>
    <property name="currentIndex">
@@ -71,7 +58,7 @@
       </rect>
      </property>
      <property name="plainText">
-      <string>Margot Robbie</string>
+      <string>Leonardo DiCaprio</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_7">
@@ -139,12 +126,12 @@
       <string>IMDb</string>
      </property>
     </widget>
-    <widget class="QSpinBox" name="sample_size_3">
+    <widget class="QSpinBox" name="sample_size_manual">
      <property name="geometry">
       <rect>
        <x>160</x>
        <y>110</y>
-       <width>42</width>
+       <width>80</width>
        <height>22</height>
       </rect>
      </property>
@@ -208,19 +195,54 @@
       </rect>
      </property>
     </widget>
+    <widget class="QPushButton" name="run_manual_search">
+     <property name="geometry">
+      <rect>
+       <x>390</x>
+       <y>170</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Run</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="stop_manual_search">
+     <property name="geometry">
+      <rect>
+       <x>390</x>
+       <y>200</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Stop</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QWidget" name="listsearch">
     <attribute name="title">
      <string>Search from list</string>
     </attribute>
-    <widget class="QSpinBox" name="sample_size_2">
+    <widget class="QSpinBox" name="list_len">
      <property name="geometry">
       <rect>
        <x>80</x>
        <y>60</y>
-       <width>42</width>
+       <width>80</width>
        <height>22</height>
       </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
      </property>
     </widget>
     <widget class="QLabel" name="label_8">
@@ -327,12 +349,12 @@
       <string>Sample size</string>
      </property>
     </widget>
-    <widget class="QSpinBox" name="sample_size">
+    <widget class="QSpinBox" name="sample_size_list">
      <property name="geometry">
       <rect>
        <x>160</x>
        <y>110</y>
-       <width>42</width>
+       <width>80</width>
        <height>22</height>
       </rect>
      </property>
@@ -383,6 +405,32 @@
       </rect>
      </property>
     </widget>
+    <widget class="QPushButton" name="run_list_search">
+     <property name="geometry">
+      <rect>
+       <x>390</x>
+       <y>170</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Run</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="stop_list_search">
+     <property name="geometry">
+      <rect>
+       <x>390</x>
+       <y>200</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Stop</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QWidget" name="filter">
     <attribute name="title">
@@ -391,14 +439,27 @@
     <widget class="QPushButton" name="run_filter">
      <property name="geometry">
       <rect>
-       <x>20</x>
-       <y>130</y>
+       <x>390</x>
+       <y>170</y>
        <width>75</width>
        <height>23</height>
       </rect>
      </property>
      <property name="text">
       <string>Run</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="stop_filter">
+     <property name="geometry">
+      <rect>
+       <x>390</x>
+       <y>200</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Stop</string>
      </property>
     </widget>
    </widget>
@@ -411,7 +472,7 @@
       <rect>
        <x>110</x>
        <y>30</y>
-       <width>42</width>
+       <width>80</width>
        <height>22</height>
       </rect>
      </property>
@@ -421,7 +482,7 @@
       <rect>
        <x>10</x>
        <y>30</y>
-       <width>42</width>
+       <width>80</width>
        <height>22</height>
       </rect>
      </property>
@@ -481,14 +542,27 @@
     <widget class="QPushButton" name="run_prep">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>130</y>
+       <x>390</x>
+       <y>170</y>
        <width>75</width>
        <height>23</height>
       </rect>
      </property>
      <property name="text">
       <string>Run</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="stop_preproc">
+     <property name="geometry">
+      <rect>
+       <x>390</x>
+       <y>200</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Stop</string>
      </property>
     </widget>
    </widget>
