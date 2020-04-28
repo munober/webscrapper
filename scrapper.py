@@ -179,27 +179,27 @@ def run_filter_mode():
         os.makedirs(target_path_dataset)
         print("ERROR: To filter, add images to the dataset folder")
 
-def run_preprocesses():
-    if args.width != 0 and args.height != 0:
+def run_preprocesses(width, height, grayscale):
+    if width != 0 and height != 0:
         str = " "
-        if args.grayscale:
+        if grayscale:
             str = "and convert to grayscale"
         print(f"Entering pre-processing mode: will change image size {str}")
         if os.path.exists(target_path_imdb):
             preprocess_image(folder=target_path_imdb,
-                             width=args.width,
-                             height=args.height,
-                             grayscale=args.grayscale);
+                             width=width,
+                             height=height,
+                             grayscale=grayscale);
         if os.path.exists(target_path_google):
             preprocess_image(folder=target_path_google,
-                             width=args.width,
-                             height=args.height,
-                             grayscale=args.grayscale);
+                             width=width,
+                             height=height,
+                             grayscale=grayscale);
         if os.path.exists(target_path_dataset):
             preprocess_image(folder=target_path_dataset,
-                             width=args.width,
-                             height=args.height,
-                             grayscale=args.grayscale);
+                             width=width,
+                             height=height,
+                             grayscale=grayscale);
         else:
             os.makedirs(target_path_dataset)
             print("Add the images you want to preprocess in the dataset folder")
@@ -429,7 +429,6 @@ def start_search():
     else:
         print("Choose one of the following as search platform: [google, imdb, both]")
 
-
 # GUI related stuff
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
@@ -438,7 +437,7 @@ class Ui_Dialog(object):
         self.bottom_buttons = QDialogButtonBox(Dialog)
         self.bottom_buttons.setGeometry(QtCore.QRect(20, 360, 481, 32))
         self.bottom_buttons.setOrientation(QtCore.Qt.Horizontal)
-        self.bottom_buttons.setStandardButtons(QDialogButtonBox.Close|QDialogButtonBox.Help|QDialogButtonBox.RestoreDefaults)
+        self.bottom_buttons.setStandardButtons(QDialogButtonBox.Close)
         self.bottom_buttons.setCenterButtons(False)
         self.bottom_buttons.setObjectName("bottom_buttons")
         self.tabWidget = QTabWidget(Dialog)
@@ -551,9 +550,6 @@ class Ui_Dialog(object):
         self.run_filter.setGeometry(QtCore.QRect(390, 170, 75, 23))
         self.run_filter.setObjectName("run_filter")
         self.run_filter.clicked.connect(run_filter_mode)
-        self.stop_filter = QPushButton(self.filter)
-        self.stop_filter.setGeometry(QtCore.QRect(390, 200, 75, 23))
-        self.stop_filter.setObjectName("stop_filter")
         self.tabWidget.addTab(self.filter, "")
         self.preprocesses = QWidget()
         self.preprocesses.setObjectName("preprocesses")
@@ -561,10 +557,12 @@ class Ui_Dialog(object):
         self.height.setGeometry(QtCore.QRect(110, 30, 80, 22))
         self.height.setObjectName("height")
         self.height.setMaximum(1000)
+        # self.height.valueChanged.connect(update_height)
         self.width = QSpinBox(self.preprocesses)
         self.width.setGeometry(QtCore.QRect(10, 30, 80, 22))
         self.width.setObjectName("width")
         self.width.setMaximum(1000)
+        # self.width.valueChanged.connect(update_width)
         self.label_5 = QLabel(self.preprocesses)
         self.label_5.setGeometry(QtCore.QRect(10, 10, 61, 16))
         self.label_5.setObjectName("label_5")
@@ -580,11 +578,8 @@ class Ui_Dialog(object):
         self.run_prep = QPushButton(self.preprocesses)
         self.run_prep.setGeometry(QtCore.QRect(390, 170, 75, 23))
         self.run_prep.setObjectName("run_prep")
-        self.stop_preproc = QPushButton(self.preprocesses)
-        self.stop_preproc.setGeometry(QtCore.QRect(390, 200, 75, 23))
-        self.stop_preproc.setObjectName("stop_preproc")
+        self.run_prep.clicked.connect(lambda: run_preprocesses(self.width.value(), self.height.value(), self.grayscale.isChecked()))
         self.tabWidget.addTab(self.preprocesses, "")
-
         self.retranslateUi(Dialog)
         self.tabWidget.setCurrentIndex(0)
         self.bottom_buttons.accepted.connect(Dialog.accept)
@@ -620,14 +615,12 @@ class Ui_Dialog(object):
         self.stop_list_search.setText(_translate("Dialog", "Stop"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.listsearch), _translate("Dialog", "Search from list"))
         self.run_filter.setText(_translate("Dialog", "Run"))
-        self.stop_filter.setText(_translate("Dialog", "Stop"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.filter), _translate("Dialog", "Filter"))
         self.label_5.setText(_translate("Dialog", "Width"))
         self.label_6.setText(_translate("Dialog", "Height"))
         self.grayscale.setText(_translate("Dialog", "Grayscale"))
         self.zip.setText(_translate("Dialog", "Generate zipfile when done"))
         self.run_prep.setText(_translate("Dialog", "Run"))
-        self.stop_preproc.setText(_translate("Dialog", "Stop"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.preprocesses), _translate("Dialog", "Preprocesses"))
 
 
@@ -645,7 +638,7 @@ else:
     if filter_mode:
         run_filter_mode()
     if preprocess_mode:
-        run_preprocesses()
+        run_preprocesses(width=args.width, height=args.height, grayscale=args.grayscale)
     if zip_mode:
         run_zip()
     if (not filter_mode) and (not preprocess_mode) and (not zip_mode):
