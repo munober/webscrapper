@@ -163,10 +163,7 @@ target_path_imdb = "./dataset/images_imdb"
 target_path_google = "./dataset/images_google"
 target_path_dataset = "./dataset"
 
-if (not filter_mode) and (not preprocess_mode) and (not zip_mode):
-    search_mode = True
-
-if filter_mode:
+def run_filter_mode():
     print("Entering filter mode: will delete all non-face images and add a cropped folder for each actor")
     if os.path.exists(target_path_google):
         check_folder(target_path_google)
@@ -181,7 +178,8 @@ if filter_mode:
     else:
         os.makedirs(target_path_dataset)
         print("ERROR: To filter, add images to the dataset folder")
-elif preprocess_mode:
+
+def run_preprocesses():
     if args.width != 0 and args.height != 0:
         str = " "
         if args.grayscale:
@@ -207,7 +205,8 @@ elif preprocess_mode:
             print("Add the images you want to preprocess in the dataset folder")
     else:
         print("You have to set the width and height arguments first")
-elif zip_mode:
+
+def run_zip():
     if os.path.exists(target_path_dataset):
         try:
             with ZipFile('dataset_zipped.zip', 'w') as zipObj:
@@ -408,21 +407,7 @@ def run_search(manual_search, platform):
             number_images=sample_size,
         )
 
-# GUI related stuff
-def run_gui():
-    app = QApplication([])
-    Dialog = QDialog()
-    ui = Ui_Dialog()
-    ui.setupUi(Dialog)
-    Dialog.show()
-    sys.exit(app.exec_())
-
-if gui_mode:
-    search_mode = False
-    run_gui()
-
-# Running search mode
-if search_mode:
+def start_search():
     if not manual_search and not os.path.exists(list) and custom_list == "":
         list_len = int(args.list)
         if list_len > 5000:
@@ -443,3 +428,33 @@ if search_mode:
         run_search(manual_search, "both")
     else:
         print("Choose one of the following as search platform: [google, imdb, both]")
+
+
+# GUI related stuff
+
+def run_gui():
+    app = QApplication([])
+    Dialog = QDialog()
+    ui = Ui_Dialog()
+    ui.setupUi(Dialog)
+    Dialog.show()
+    sys.exit(app.exec_())
+    ui.run_filter.clicked.connect(run_filter_mode())
+
+if (not filter_mode) and (not preprocess_mode) and (not zip_mode) and (not gui_mode):
+    search_mode = True
+
+if filter_mode:
+    run_filter_mode()
+elif preprocess_mode:
+    run_preprocesses()
+elif zip_mode:
+    run_zip()
+
+if gui_mode:
+    search_mode = False
+    run_gui()
+
+# Running search mode
+if search_mode:
+    start_search()
