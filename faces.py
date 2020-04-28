@@ -42,7 +42,7 @@ def check_folder(folder):
             continue
 
 def preprocess_image(folder, width, height, grayscale):
-    #TODO width, height, folder nav, grayscale
+    #TODO grayscale
     subfolder_paths = []
     for subfolder in os.listdir(folder):
         try:
@@ -64,6 +64,8 @@ def preprocess_image(folder, width, height, grayscale):
                     # width = int(img.shape[1] * scale_percent / 100)
                     dim = (width, height)
                     resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
+                    if grayscale:
+                        resized = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
                     cv2.imwrite(f"{subfolder}/preprocessed/{path}", resized)
                     print(
                         f"SUCCES: saved resized version of {subfolder}/preprocessed/{path}"

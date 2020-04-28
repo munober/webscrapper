@@ -179,7 +179,21 @@ def run_filter_mode():
         os.makedirs(target_path_dataset)
         print("ERROR: To filter, add images to the dataset folder")
 
-def run_preprocesses(width, height, grayscale):
+def run_zip():
+    if os.path.exists(target_path_dataset):
+        try:
+            with ZipFile('dataset_zipped.zip', 'w') as zipObj:
+                for folderName, subfolders, filenames in os.walk(target_path_dataset):
+                    for filename in filenames:
+                        filePath = os.path.join(folderName, filename)
+                        zipObj.write(filePath)
+        except Exception as e:
+            print(f"Could not zip dataset - {e}")
+    else:
+        os.makedirs(target_path_dataset)
+        print("no dataset folder found. Created dataset folder. Fill this folder and try again")
+
+def run_preprocesses(width, height, grayscale, zip = False):
     if width != 0 and height != 0:
         str = " "
         if grayscale:
@@ -205,21 +219,8 @@ def run_preprocesses(width, height, grayscale):
             print("Add the images you want to preprocess in the dataset folder")
     else:
         print("You have to set the width and height arguments first")
-
-def run_zip():
-    if os.path.exists(target_path_dataset):
-        try:
-            with ZipFile('dataset_zipped.zip', 'w') as zipObj:
-                for folderName, subfolders, filenames in os.walk(target_path_dataset):
-                    for filename in filenames:
-                        filePath = os.path.join(folderName, filename)
-                        zipObj.write(filePath)
-        except Exception as e:
-            print(f"Could not zip dataset - {e}")
-    else:
-        os.makedirs(target_path_dataset)
-        print("no dataset folder found. Created dataset folder. Fill this folder and try again")
-
+    if zip:
+        run_zip()
 
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
 list = "dataset/imdbactors.txt"
@@ -578,7 +579,8 @@ class Ui_Dialog(object):
         self.run_prep = QPushButton(self.preprocesses)
         self.run_prep.setGeometry(QtCore.QRect(390, 170, 75, 23))
         self.run_prep.setObjectName("run_prep")
-        self.run_prep.clicked.connect(lambda: run_preprocesses(self.width.value(), self.height.value(), self.grayscale.isChecked()))
+        self.run_prep.clicked.connect(lambda:
+                                      run_preprocesses(self.width.value(), self.height.value(), self.grayscale.isChecked(), self.zip.isChecked()))
         self.tabWidget.addTab(self.preprocesses, "")
         self.retranslateUi(Dialog)
         self.tabWidget.setCurrentIndex(0)
@@ -638,7 +640,7 @@ else:
     if filter_mode:
         run_filter_mode()
     if preprocess_mode:
-        run_preprocesses(width=args.width, height=args.height, grayscale=args.grayscale)
+        run_preprocesses(width=args.width, height=args.height, grayscale=args.grayscale, zip=zip_mode)
     if zip_mode:
         run_zip()
     if (not filter_mode) and (not preprocess_mode) and (not zip_mode):
