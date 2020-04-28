@@ -17,9 +17,13 @@ Example usage:
 ```bash
 python scrapper.py -p google -m "brad pitt"
 ```
-The app has a CLI argument parser, check out --help for details.
+The app has both a CLI parser, as well as a graphical user interface. Check out --help for details.
 
 There are 3 modes of use: automated search (default), manual search (-m "search term") and filtering/cropping (-f on) of faces. Extra functionality built to enhance the results of these modes is available (e.g. automatic name list generation or fine parameter settings).
+
+![picture](https://raw.githubusercontent.com/munober/webscrapper/master/resources/Screenshot_1.png)
+
+![picture](https://raw.githubusercontent.com/munober/webscrapper/master/resources/Screenshot_2.png)
 
 ## Legality
 The app searches for, downloades and processes Google Image Search results and IMDb pictures of actors available freely online and is intented for academic use only.
