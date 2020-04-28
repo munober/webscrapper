@@ -104,7 +104,7 @@ parser.add_argument(
     "-e",
     "--headless",
     action="store_true",
-    help="Run in headless more"
+    help="Run in headless mode"
 )
 parser.add_argument(
     "-pp",
@@ -223,7 +223,7 @@ def run_preprocesses(width, height, grayscale, zip = False):
         run_zip()
 
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
-list = "dataset/imdbactors.txt"
+imdb_list = "dataset/imdbactors.txt"
 
 def bs_get_page_imdb(name: str):
     response = requests.get(search_url_imdb.format(q=name).replace(" ", "+"))
@@ -408,9 +408,9 @@ def run_search(manual_search, platform):
             number_images=sample_size,
         )
 
-def start_search():
-    if not manual_search and not os.path.exists(list) and custom_list == "":
-        list_len = int(args.list)
+def start_search(google, imdb, manual, list):
+    if not manual and not os.path.exists(imdb_list) and custom_list == "":
+        list_len = int(list)
         if list_len > 5000:
             list_len = 5000
             print("Maximum actors' names list length is 5000, set length to 5000")
@@ -421,12 +421,12 @@ def start_search():
         generate_list(list_len)
         print("SUCCESS: List generated")
 
-    if str(args.platform) == "google":
-        run_search(manual_search, "google")
-    elif str(args.platform) == "imdb":
-        run_search(manual_search, "imdb")
-    elif str(args.platform) == "both":
-        run_search(manual_search, "both")
+    if google and not imdb:
+        run_search(manual, "google")
+    elif imdb and not google:
+        run_search(manual, "imdb")
+    elif google and imdb:
+        run_search(manual, "both")
     else:
         print("Choose one of the following as search platform: [google, imdb, both]")
 
@@ -458,12 +458,12 @@ class Ui_Dialog(object):
         self.label_9 = QLabel(self.manual)
         self.label_9.setGeometry(QtCore.QRect(20, 90, 91, 16))
         self.label_9.setObjectName("label_9")
-        self.google_2 = QRadioButton(self.manual)
-        self.google_2.setGeometry(QtCore.QRect(20, 110, 82, 17))
-        self.google_2.setObjectName("google_2")
-        self.imdb_2 = QRadioButton(self.manual)
-        self.imdb_2.setGeometry(QtCore.QRect(20, 130, 82, 17))
-        self.imdb_2.setObjectName("imdb_2")
+        self.google_manual = QCheckBox(self.manual)
+        self.google_manual.setGeometry(QtCore.QRect(20, 110, 82, 17))
+        self.google_manual.setObjectName("google_2")
+        self.imdb_manual = QCheckBox(self.manual)
+        self.imdb_manual.setGeometry(QtCore.QRect(20, 130, 82, 17))
+        self.imdb_manual.setObjectName("imdb_2")
         self.sample_size_manual = QSpinBox(self.manual)
         self.sample_size_manual.setGeometry(QtCore.QRect(160, 110, 80, 22))
         self.sample_size_manual.setObjectName("sample_size_manual")
@@ -486,6 +486,9 @@ class Ui_Dialog(object):
         self.run_manual_search = QPushButton(self.manual)
         self.run_manual_search.setGeometry(QtCore.QRect(390, 170, 75, 23))
         self.run_manual_search.setObjectName("run_manual_search")
+        self.run_manual_search.clicked.connect(
+            lambda: start_search(self.google_manual.isChecked(), self.imdb_manual.isChecked(), self.manual_search_term.toPlainText(),
+                                 False))
         self.stop_manual_search = QPushButton(self.manual)
         self.stop_manual_search.setGeometry(QtCore.QRect(390, 200, 75, 23))
         self.stop_manual_search.setObjectName("stop_manual_search")
@@ -513,12 +516,12 @@ class Ui_Dialog(object):
         self.label = QLabel(self.listsearch)
         self.label.setGeometry(QtCore.QRect(20, 90, 91, 16))
         self.label.setObjectName("label")
-        self.google = QRadioButton(self.listsearch)
-        self.google.setGeometry(QtCore.QRect(20, 110, 82, 17))
-        self.google.setObjectName("google")
-        self.imdb = QRadioButton(self.listsearch)
-        self.imdb.setGeometry(QtCore.QRect(20, 130, 82, 17))
-        self.imdb.setObjectName("imdb")
+        self.google_auto = QCheckBox(self.listsearch)
+        self.google_auto.setGeometry(QtCore.QRect(20, 110, 82, 17))
+        self.google_auto.setObjectName("google")
+        self.imdb_auto = QCheckBox(self.listsearch)
+        self.imdb_auto.setGeometry(QtCore.QRect(20, 130, 82, 17))
+        self.imdb_auto.setObjectName("imdb")
         self.label_2 = QLabel(self.listsearch)
         self.label_2.setGeometry(QtCore.QRect(160, 90, 61, 16))
         self.label_2.setObjectName("label_2")
@@ -541,6 +544,8 @@ class Ui_Dialog(object):
         self.run_list_search = QPushButton(self.listsearch)
         self.run_list_search.setGeometry(QtCore.QRect(390, 170, 75, 23))
         self.run_list_search.setObjectName("run_list_search")
+        self.run_list_search.clicked.connect(
+            lambda: start_search(self.google_auto.isChecked(), self.imdb_auto.isChecked(), False, self.list_len.value()))
         self.stop_list_search = QPushButton(self.listsearch)
         self.stop_list_search.setGeometry(QtCore.QRect(390, 200, 75, 23))
         self.stop_list_search.setObjectName("stop_list_search")
@@ -558,12 +563,10 @@ class Ui_Dialog(object):
         self.height.setGeometry(QtCore.QRect(110, 30, 80, 22))
         self.height.setObjectName("height")
         self.height.setMaximum(1000)
-        # self.height.valueChanged.connect(update_height)
         self.width = QSpinBox(self.preprocesses)
         self.width.setGeometry(QtCore.QRect(10, 30, 80, 22))
         self.width.setObjectName("width")
         self.width.setMaximum(1000)
-        # self.width.valueChanged.connect(update_width)
         self.label_5 = QLabel(self.preprocesses)
         self.label_5.setGeometry(QtCore.QRect(10, 10, 61, 16))
         self.label_5.setObjectName("label_5")
@@ -595,8 +598,8 @@ class Ui_Dialog(object):
         self.label_7.setText(_translate("Dialog", "Search Term"))
         self.headless_2.setText(_translate("Dialog", "Run in headless mode"))
         self.label_9.setText(_translate("Dialog", "Search platform"))
-        self.google_2.setText(_translate("Dialog", "Google"))
-        self.imdb_2.setText(_translate("Dialog", "IMDb"))
+        self.google_manual.setText(_translate("Dialog", "Google"))
+        self.imdb_manual.setText(_translate("Dialog", "IMDb"))
         self.label_10.setText(_translate("Dialog", "Sample size"))
         self.label_11.setText(_translate("Dialog", "Timeout"))
         self.label_12.setText(_translate("Dialog", "Delay"))
@@ -608,8 +611,8 @@ class Ui_Dialog(object):
         self.pushButton_4.setText(_translate("Dialog", "Custom list"))
         self.headless.setText(_translate("Dialog", "Run in headless mode"))
         self.label.setText(_translate("Dialog", "Search platform"))
-        self.google.setText(_translate("Dialog", "Google"))
-        self.imdb.setText(_translate("Dialog", "IMDb"))
+        self.google_auto.setText(_translate("Dialog", "Google"))
+        self.imdb_auto.setText(_translate("Dialog", "IMDb"))
         self.label_2.setText(_translate("Dialog", "Sample size"))
         self.label_3.setText(_translate("Dialog", "Timeout"))
         self.label_4.setText(_translate("Dialog", "Delay"))
@@ -644,4 +647,9 @@ else:
     if zip_mode:
         run_zip()
     if (not filter_mode) and (not preprocess_mode) and (not zip_mode):
-        start_search()
+        if args.platform == "google":
+            start_search(google=True, imdb=False, manual=args.manual, list=args.list)
+        elif args.platform == "imdb":
+            start_search(google=False, imdb=True, manual=args.manual, list=args.list)
+        elif args.platform == "both":
+            start_search(google=True, imdb=True, manual=args.manual, list=args.list)
