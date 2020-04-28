@@ -21,10 +21,8 @@ The app has both a CLI parser, as well as a graphical user interface. Check out 
 
 There are 3 modes of use: automated search (default), manual search (-m "search term") and filtering/cropping (-f on) of faces. Extra functionality built to enhance the results of these modes is available (e.g. automatic name list generation or fine parameter settings).
 
-Manual search mode:
 ![picture](https://raw.githubusercontent.com/munober/webscrapper/master/resources/Screenshot_1.png)
 
-Data preprocessing mode:
 ![picture](https://raw.githubusercontent.com/munober/webscrapper/master/resources/Screenshot_2.png)
 
 ## Legality
