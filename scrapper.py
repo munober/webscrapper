@@ -147,13 +147,12 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-sample_size = args.sample_size
-run_headless = args.headless
 delay = args.delay  # seconds, 1 second is recommended
 timeout = (
     args.timeout
 )  # number of times script will try hitting again after error; script will save work and quit if unsuccesful
 manual_search = args.manual
+run_headless = args.headless
 filter_mode = args.filter
 preprocess_mode = args.preprocess
 zip_mode = args.zip
@@ -311,8 +310,7 @@ def persist_image(folder_path: str, url: str):
 
 # standard download size is 5
 def search_and_download(
-    platform: str, search_term: str, driver_path: str, number_images=5
-):
+    platform: str, search_term: str, driver_path: str, number_images, headless_toggle_sd):
     target_path_imdb = "./dataset/images_imdb"
     target_path_google = "./dataset/images_google"
     target_folder_imdb = os.path.join(
@@ -335,9 +333,8 @@ def search_and_download(
             elif page == number_pages:
                 num_img_to_get_this_step = number_images % 48
 
-            # Currently only running in headful mode (is that even a word)
-            # Headless kinda unstable
-            if run_headless:
+            if headless_toggle_sd:
+                print("Running headless")
                 with webdriver.Chrome(
                     executable_path=driver_path, options=options
                 ) as wd:
@@ -350,7 +347,7 @@ def search_and_download(
                     )
                     for elem in res_imdb:
                         persist_image(target_folder_imdb, elem)
-            elif not run_headless:
+            elif not headless_toggle_sd:
                 with webdriver.Chrome(executable_path=driver_path) as wd:
                     res_imdb = fetch_image_urls_imdb(
                         search_term,
@@ -363,27 +360,39 @@ def search_and_download(
                     persist_image(target_folder_imdb, elem)
             page += 1
     if (platform == "google") or (platform == "both"):
-        with webdriver.Chrome(executable_path=driver_path) as wd:
-            res_google = fetch_image_urls_google(
-                search_term, number_images, wd=wd, sleep_between_interactions=delay
-            )
-        for elem in res_google:
-            persist_image(target_folder_google, elem)
+        if headless_toggle_sd:
+            print("Running headless")
+            with webdriver.Chrome(
+                    executable_path=driver_path, options=options
+            ) as wd:
+                res_google = fetch_image_urls_google(
+                    search_term, number_images, wd=wd, sleep_between_interactions=delay
+                )
+            for elem in res_google:
+                persist_image(target_folder_google, elem)
+        elif not headless_toggle_sd:
+            with webdriver.Chrome(executable_path=driver_path) as wd:
+                res_google = fetch_image_urls_google(
+                    search_term, number_images, wd=wd, sleep_between_interactions=delay
+                )
+            for elem in res_google:
+                persist_image(target_folder_google, elem)
 
 
 # Running the search
-def run_search(manual_search, platform):
+def run_search(manual_search, platform, headless_toggle_orig, rs_sample_size):
     if not manual_search:
         if custom_list == "":
             print("Search based on automatically generated names list")
-            with open(list, "r") as input:
+            with open(imdb_list, "r") as input:
                 search_terms = input.readlines()
             for item in search_terms:
                 search_and_download(
                     platform=platform,
                     search_term=item.strip(),
                     driver_path=DRIVER_PATH,
-                    number_images=sample_size,
+                    number_images=rs_sample_size,
+                    headless_toggle_sd=headless_toggle_orig
                 )
         elif custom_list != "":
             if not os.path.exists(custom_list):
@@ -397,7 +406,8 @@ def run_search(manual_search, platform):
                         platform=platform,
                         search_term=item.strip(),
                         driver_path=DRIVER_PATH,
-                        number_images=sample_size,
+                        number_images=rs_sample_size,
+                        headless_toggle_sd=headless_toggle_orig
                     )
     elif manual_search:
         print(f"Manual search: {manual_search}")
@@ -405,10 +415,11 @@ def run_search(manual_search, platform):
             platform=platform,
             search_term=manual_search.strip(),
             driver_path=DRIVER_PATH,
-            number_images=sample_size,
+            number_images=rs_sample_size,
+            headless_toggle_sd=headless_toggle_orig
         )
 
-def start_search(google, imdb, manual, list):
+def start_search(google, imdb, manual, list, headless_switch, ss_sameple_size):
     if not manual and not os.path.exists(imdb_list) and custom_list == "":
         list_len = int(list)
         if list_len > 5000:
@@ -422,11 +433,11 @@ def start_search(google, imdb, manual, list):
         print("SUCCESS: List generated")
 
     if google and not imdb:
-        run_search(manual, "google")
+        run_search(manual, "google", headless_switch, ss_sameple_size)
     elif imdb and not google:
-        run_search(manual, "imdb")
+        run_search(manual, "imdb", headless_switch, ss_sameple_size)
     elif google and imdb:
-        run_search(manual, "both")
+        run_search(manual, "both", headless_switch, ss_sameple_size)
     else:
         print("Choose one of the following as search platform: [google, imdb, both]")
 
@@ -471,24 +482,24 @@ class Ui_Dialog(object):
         self.label_10 = QLabel(self.manual)
         self.label_10.setGeometry(QtCore.QRect(160, 90, 61, 16))
         self.label_10.setObjectName("label_10")
-        self.label_11 = QLabel(self.manual)
-        self.label_11.setGeometry(QtCore.QRect(260, 90, 61, 16))
-        self.label_11.setObjectName("label_11")
-        self.label_12 = QLabel(self.manual)
-        self.label_12.setGeometry(QtCore.QRect(360, 90, 61, 16))
-        self.label_12.setObjectName("label_12")
-        self.delay_2 = QSpinBox(self.manual)
-        self.delay_2.setGeometry(QtCore.QRect(360, 110, 42, 22))
-        self.delay_2.setObjectName("delay_2")
-        self.timeout_2 = QSpinBox(self.manual)
-        self.timeout_2.setGeometry(QtCore.QRect(260, 110, 42, 22))
-        self.timeout_2.setObjectName("timeout_2")
+        # self.label_11 = QLabel(self.manual)
+        # self.label_11.setGeometry(QtCore.QRect(260, 90, 61, 16))
+        # self.label_11.setObjectName("label_11")
+        # self.label_12 = QLabel(self.manual)
+        # self.label_12.setGeometry(QtCore.QRect(360, 90, 61, 16))
+        # self.label_12.setObjectName("label_12")
+        # self.delay_2 = QSpinBox(self.manual)
+        # self.delay_2.setGeometry(QtCore.QRect(360, 110, 42, 22))
+        # self.delay_2.setObjectName("delay_2")
+        # self.timeout_2 = QSpinBox(self.manual)
+        # self.timeout_2.setGeometry(QtCore.QRect(260, 110, 42, 22))
+        # self.timeout_2.setObjectName("timeout_2")
         self.run_manual_search = QPushButton(self.manual)
         self.run_manual_search.setGeometry(QtCore.QRect(390, 170, 75, 23))
         self.run_manual_search.setObjectName("run_manual_search")
         self.run_manual_search.clicked.connect(
             lambda: start_search(self.google_manual.isChecked(), self.imdb_manual.isChecked(), self.manual_search_term.toPlainText(),
-                                 False))
+                                 False, self.headless_2.isChecked(), self.sample_size_manual.value()))
         self.stop_manual_search = QPushButton(self.manual)
         self.stop_manual_search.setGeometry(QtCore.QRect(390, 200, 75, 23))
         self.stop_manual_search.setObjectName("stop_manual_search")
@@ -507,9 +518,9 @@ class Ui_Dialog(object):
         self.pushButton = QPushButton(self.listsearch)
         self.pushButton.setGeometry(QtCore.QRect(20, 20, 75, 23))
         self.pushButton.setObjectName("pushButton")
-        self.pushButton_4 = QPushButton(self.listsearch)
-        self.pushButton_4.setGeometry(QtCore.QRect(250, 20, 75, 23))
-        self.pushButton_4.setObjectName("pushButton_4")
+        # self.pushButton_4 = QPushButton(self.listsearch)
+        # self.pushButton_4.setGeometry(QtCore.QRect(250, 20, 75, 23))
+        # self.pushButton_4.setObjectName("pushButton_4")
         self.headless = QCheckBox(self.listsearch)
         self.headless.setGeometry(QtCore.QRect(20, 160, 131, 17))
         self.headless.setObjectName("headless")
@@ -529,23 +540,24 @@ class Ui_Dialog(object):
         self.sample_size_list.setGeometry(QtCore.QRect(160, 110, 80, 22))
         self.sample_size_list.setObjectName("sample_size_list")
         self.sample_size_list.setMaximum(100)
-        self.timeout = QSpinBox(self.listsearch)
-        self.timeout.setGeometry(QtCore.QRect(260, 110, 42, 22))
-        self.timeout.setObjectName("timeout")
-        self.label_3 = QLabel(self.listsearch)
-        self.label_3.setGeometry(QtCore.QRect(260, 90, 61, 16))
-        self.label_3.setObjectName("label_3")
-        self.label_4 = QLabel(self.listsearch)
-        self.label_4.setGeometry(QtCore.QRect(360, 90, 61, 16))
-        self.label_4.setObjectName("label_4")
-        self.delay = QSpinBox(self.listsearch)
-        self.delay.setGeometry(QtCore.QRect(360, 110, 42, 22))
-        self.delay.setObjectName("delay")
+        # self.timeout = QSpinBox(self.listsearch)
+        # self.timeout.setGeometry(QtCore.QRect(260, 110, 42, 22))
+        # self.timeout.setObjectName("timeout")
+        # self.label_3 = QLabel(self.listsearch)
+        # self.label_3.setGeometry(QtCore.QRect(260, 90, 61, 16))
+        # self.label_3.setObjectName("label_3")
+        # self.label_4 = QLabel(self.listsearch)
+        # self.label_4.setGeometry(QtCore.QRect(360, 90, 61, 16))
+        # self.label_4.setObjectName("label_4")
+        # self.delay = QSpinBox(self.listsearch)
+        # self.delay.setGeometry(QtCore.QRect(360, 110, 42, 22))
+        # self.delay.setObjectName("delay")
         self.run_list_search = QPushButton(self.listsearch)
         self.run_list_search.setGeometry(QtCore.QRect(390, 170, 75, 23))
         self.run_list_search.setObjectName("run_list_search")
         self.run_list_search.clicked.connect(
-            lambda: start_search(self.google_auto.isChecked(), self.imdb_auto.isChecked(), False, self.list_len.value()))
+            lambda: start_search(self.google_auto.isChecked(), self.imdb_auto.isChecked(), False, self.list_len.value(),
+                                 self.headless.isChecked(), self.sample_size_list.value()))
         self.stop_list_search = QPushButton(self.listsearch)
         self.stop_list_search.setGeometry(QtCore.QRect(390, 200, 75, 23))
         self.stop_list_search.setObjectName("stop_list_search")
@@ -601,21 +613,21 @@ class Ui_Dialog(object):
         self.google_manual.setText(_translate("Dialog", "Google"))
         self.imdb_manual.setText(_translate("Dialog", "IMDb"))
         self.label_10.setText(_translate("Dialog", "Sample size"))
-        self.label_11.setText(_translate("Dialog", "Timeout"))
-        self.label_12.setText(_translate("Dialog", "Delay"))
+        # self.label_11.setText(_translate("Dialog", "Timeout"))
+        # self.label_12.setText(_translate("Dialog", "Delay"))
         self.run_manual_search.setText(_translate("Dialog", "Run"))
         self.stop_manual_search.setText(_translate("Dialog", "Stop"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.manual), _translate("Dialog", "Manual"))
         self.label_8.setText(_translate("Dialog", "List length"))
         self.pushButton.setText(_translate("Dialog", "Generate list"))
-        self.pushButton_4.setText(_translate("Dialog", "Custom list"))
+        # self.pushButton_4.setText(_translate("Dialog", "Custom list"))
         self.headless.setText(_translate("Dialog", "Run in headless mode"))
         self.label.setText(_translate("Dialog", "Search platform"))
         self.google_auto.setText(_translate("Dialog", "Google"))
         self.imdb_auto.setText(_translate("Dialog", "IMDb"))
         self.label_2.setText(_translate("Dialog", "Sample size"))
-        self.label_3.setText(_translate("Dialog", "Timeout"))
-        self.label_4.setText(_translate("Dialog", "Delay"))
+        # self.label_3.setText(_translate("Dialog", "Timeout"))
+        # self.label_4.setText(_translate("Dialog", "Delay"))
         self.run_list_search.setText(_translate("Dialog", "Run"))
         self.stop_list_search.setText(_translate("Dialog", "Stop"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.listsearch), _translate("Dialog", "Search from list"))
@@ -648,8 +660,11 @@ else:
         run_zip()
     if (not filter_mode) and (not preprocess_mode) and (not zip_mode):
         if args.platform == "google":
-            start_search(google=True, imdb=False, manual=args.manual, list=args.list)
+            start_search(google=True, imdb=False, manual=args.manual, list=args.list,
+                         headless_switch=run_headless, ss_sameple_size=args.sample_size)
         elif args.platform == "imdb":
-            start_search(google=False, imdb=True, manual=args.manual, list=args.list)
+            start_search(google=False, imdb=True, manual=args.manual, list=args.list,
+                         headless_switch=run_headless, ss_sameple_size=args.sample_size)
         elif args.platform == "both":
-            start_search(google=True, imdb=True, manual=args.manual, list=args.list)
+            start_search(google=True, imdb=True, manual=args.manual, list=args.list,
+                         headless_switch=run_headless, ss_sameple_size=args.sample_size)
