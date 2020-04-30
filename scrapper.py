@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 from PIL import Image
 from math import floor
 import argparse
-from namelist_generator import generate_list
+from namelist_generator import generate_list, get_imdb_thumbnail_links, get_imdb_image_link
 from google_link_collector import fetch_image_urls_google
 from faces import check_folder, preprocess_image
 from zipfile import ZipFile
@@ -241,16 +241,18 @@ def bs_get_page_imdb(name: str):
 def fetch_image_urls_imdb(
     query: str,
     max_links_to_fetch: int,
-    wd: webdriver,
+    # wd: webdriver,
     sleep_between_interactions: 1,
     search_url,
 ):
     imdb_image_path = "/html/body/div[2]/div/div[2]/div/div[1]/div[1]/div/div[3]/a"
     timeout_counter = 0
     image_urls = set()
-    wd.get(search_url)
-    thumbnail_results = wd.find_elements_by_xpath(imdb_image_path)
+    thumbnail_results = get_imdb_thumbnail_links(search_url)
     max_images_page = len(thumbnail_results)
+    # wd.get(search_url)
+    # thumbnail_results = wd.find_elements_by_xpath(imdb_image_path)
+    # max_images_page = len(thumbnail_results)
     if max_links_to_fetch > max_images_page and max_images_page < 48:
         print(
             f"imdb doesn't offer enough pictures for {query}: Only another {max_images_page} available."
@@ -260,36 +262,42 @@ def fetch_image_urls_imdb(
         max_links_to_fetch = max_images_page
     for thumbnail_result in thumbnail_results:
         if max_links_to_fetch > len(image_urls):
-            try:
-                click_target = wd.find_element_by_xpath(
-                    imdb_image_path + f"[{str(len(image_urls) + 1)}]"
+            link = get_imdb_image_link(f"https://www.imdb.com/{thumbnail_result}")
+            if "https://m.media-amazon.com" in link:
+                image_urls.add(link)
+                print(
+                    f"{query}: {str(len(image_urls))}/{max_links_to_fetch}"
                 )
-                click_target.click()
-                time.sleep(sleep_between_interactions)
-                actual_image = wd.find_element_by_xpath("/html/head/meta[7]")
-                if actual_image.get_attribute(
-                    "content"
-                ) and "http" in actual_image.get_attribute("content"):
-                    image_urls.add(actual_image.get_attribute("content"))
-                    print(
-                        f"{query}: {str(len(image_urls))}/{max_links_to_fetch} at {thumbnail_result}."
-                    )
-                    timeout_counter = 0
-            except Exception as e:
-                print(f"Failed click for {query}. Waiting... - {e}")
-                time.sleep(5)
-                timeout_counter += 1
-                if timeout_counter == timeout:
-                    return image_urls
-                else:
-                    continue
-            try:
-                wd.execute_script("window.history.go(-1)")
-                time.sleep(sleep_between_interactions)
-            except Exception as e:
-                print(f"Failed going back for {query}. Waiting... - {e}")
-                time.sleep(5)
-                continue
+            # try:
+                # click_target = wd.find_element_by_xpath(
+                #     imdb_image_path + f"[{str(len(image_urls) + 1)}]"
+                # )
+                # click_target.click()
+                # time.sleep(sleep_between_interactions)
+                # actual_image = wd.find_element_by_xpath("/html/head/meta[7]")
+                # if actual_image.get_attribute(
+                #     "content"
+                # ) and "http" in actual_image.get_attribute("content"):
+                #     image_urls.add(actual_image.get_attribute("content"))
+                #     print(
+                #         f"{query}: {str(len(image_urls))}/{max_links_to_fetch} at {thumbnail_result}."
+                #     )
+                #     timeout_counter = 0
+            # except Exception as e:
+            #     print(f"Failed click for {query}. Waiting... - {e}")
+            #     time.sleep(5)
+            #     timeout_counter += 1
+            #     if timeout_counter == timeout:
+            #         return image_urls
+            #     else:
+            #         continue
+            # try:
+            #     wd.execute_script("window.history.go(-1)")
+            #     time.sleep(sleep_between_interactions)
+            # except Exception as e:
+            #     print(f"Failed going back for {query}. Waiting... - {e}")
+            #     time.sleep(5)
+            #     continue
     return image_urls
 
 
@@ -338,31 +346,31 @@ def search_and_download(
                 num_img_to_get_this_step = number_images % 48
             imdb_link = bs_get_page_imdb(search_term)
             if (imdb_link != "no_result"):
-                if headless_toggle_sd:
-                    print("Running headless")
-                    with webdriver.Firefox(
-                        executable_path=driver_path, options=options
-                    ) as wd:
-                        res_imdb = fetch_image_urls_imdb(
-                            search_term,
-                            num_img_to_get_this_step,
-                            wd=wd,
-                            sleep_between_interactions=delay,
-                            search_url=(imdb_link + f"?page={page}"),
-                        )
-                        for elem in res_imdb:
-                            persist_image(target_folder_imdb, elem)
-                elif not headless_toggle_sd:
-                    with webdriver.Firefox(executable_path=driver_path) as wd:
-                        res_imdb = fetch_image_urls_imdb(
-                            search_term,
-                            num_img_to_get_this_step,
-                            wd=wd,
-                            sleep_between_interactions=delay,
-                            search_url=(imdb_link + f"?page={page}"),
-                        )
-                    for elem in res_imdb:
-                        persist_image(target_folder_imdb, elem)
+                # if headless_toggle_sd:
+                #     print("Running headless")
+                #     with webdriver.Firefox(
+                #         executable_path=driver_path, options=options
+                #     ) as wd:
+                res_imdb = fetch_image_urls_imdb(
+                    search_term,
+                    num_img_to_get_this_step,
+                    # wd=wd,
+                    sleep_between_interactions=delay,
+                    search_url=(imdb_link + f"?page={page}"),
+                )
+                for elem in res_imdb:
+                    persist_image(target_folder_imdb, elem)
+                # elif not headless_toggle_sd:
+                #     with webdriver.Firefox(executable_path=driver_path) as wd:
+                #         res_imdb = fetch_image_urls_imdb(
+                #             search_term,
+                #             num_img_to_get_this_step,
+                #             wd=wd,
+                #             sleep_between_interactions=delay,
+                #             search_url=(imdb_link + f"?page={page}"),
+                #         )
+                #     for elem in res_imdb:
+                #         persist_image(target_folder_imdb, elem)
                 page += 1
             else:
                 break
