@@ -198,18 +198,18 @@ def run_preprocesses(width, height, grayscale, zip = False):
         if grayscale:
             str = "and convert to grayscale"
         print(f"Entering pre-processing mode: will change image size {str}")
-        if os.path.exists(target_path_imdb):
-            preprocess_image(folder=target_path_imdb,
-                             width=width,
-                             height=height,
-                             grayscale=grayscale);
-        if os.path.exists(target_path_google):
-            preprocess_image(folder=target_path_google,
-                             width=width,
-                             height=height,
-                             grayscale=grayscale);
-        if os.path.exists(target_path_dataset):
-            preprocess_image(folder=target_path_dataset,
+        # if os.path.exists(target_path_imdb):
+        #     preprocess_image(folder=target_path_imdb,
+        #                      width=width,
+        #                      height=height,
+        #                      grayscale=grayscale);
+        # if os.path.exists(target_path_google):
+        #     preprocess_image(folder=target_path_google,
+        #                      width=width,
+        #                      height=height,
+        #                      grayscale=grayscale);
+        if os.path.exists(f"{target_path_dataset}/cropped"):
+            preprocess_image(folder=f"{target_path_dataset}/cropped",
                              width=width,
                              height=height,
                              grayscale=grayscale);

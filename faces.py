@@ -60,8 +60,8 @@ def preprocess_image(folder, width, height, grayscale):
                 path_parsed = f"{subfolder}/{path}"
                 try:
                     img = cv2.imread(path_parsed)
-                    if not os.path.exists(f"{subfolder}/preprocessed/"):
-                        os.makedirs(f"{subfolder}/preprocessed/")
+                    # if not os.path.exists(f"{subfolder}/preprocessed/"):
+                    #     os.makedirs(f"{subfolder}/preprocessed/")
                     # Rescaling with preserved aspect ratio
                     # scale_percent = 60
                     # height = int(img.shape[0] * scale_percent / 100)
@@ -70,9 +70,11 @@ def preprocess_image(folder, width, height, grayscale):
                     resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
                     if grayscale:
                         resized = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
-                    cv2.imwrite(f"{subfolder}/preprocessed/{path}", resized)
+                    if not os.path.exists(f"{folder}/preprocessed/{subfolder[18:]}/"):
+                        os.makedirs(f"{folder}/preprocessed/{subfolder[18:]}/")
+                    cv2.imwrite(f"{folder}/preprocessed/{subfolder[18:]}/{path}", resized)
                     print(
-                        f"SUCCES: saved resized version of {subfolder}/preprocessed/{path}"
+                        f"{folder}/preprocessed/{subfolder[18:]}/{path}"
                     )
 
                 except Exception as e:
