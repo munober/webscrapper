@@ -164,14 +164,14 @@ target_path_dataset = "./dataset"
 
 def run_filter_mode():
     print("Entering filter mode: will delete all non-face images and add a cropped folder for each actor")
-    if os.path.exists(target_path_google):
-        check_folder(target_path_google)
-    else:
-        print("No google dataset folder found")
-    if os.path.exists(target_path_imdb):
-        check_folder(target_path_imdb)
-    else:
-        print("No imdb dataset folder found")
+    # if os.path.exists(target_path_google):
+    #     check_folder(target_path_google)
+    # else:
+    #     print("No google dataset folder found")
+    # if os.path.exists(target_path_imdb):
+    #     check_folder(target_path_imdb)
+    # else:
+    #     print("No imdb dataset folder found")
     if os.path.exists(target_path_dataset):
         check_folder(folder=target_path_dataset)
     else:
@@ -198,18 +198,18 @@ def run_preprocesses(width, height, grayscale, zip = False):
         if grayscale:
             str = "and convert to grayscale"
         print(f"Entering pre-processing mode: will change image size {str}")
-        if os.path.exists(target_path_imdb):
-            preprocess_image(folder=target_path_imdb,
-                             width=width,
-                             height=height,
-                             grayscale=grayscale);
-        if os.path.exists(target_path_google):
-            preprocess_image(folder=target_path_google,
-                             width=width,
-                             height=height,
-                             grayscale=grayscale);
-        if os.path.exists(target_path_dataset):
-            preprocess_image(folder=target_path_dataset,
+        # if os.path.exists(target_path_imdb):
+        #     preprocess_image(folder=target_path_imdb,
+        #                      width=width,
+        #                      height=height,
+        #                      grayscale=grayscale);
+        # if os.path.exists(target_path_google):
+        #     preprocess_image(folder=target_path_google,
+        #                      width=width,
+        #                      height=height,
+        #                      grayscale=grayscale);
+        if os.path.exists(f"{target_path_dataset}/cropped"):
+            preprocess_image(folder=f"{target_path_dataset}/cropped",
                              width=width,
                              height=height,
                              grayscale=grayscale);
@@ -289,18 +289,22 @@ def persist_image(folder_path: str, url: str):
 # standard download size is 5
 def search_and_download(
     platform: str, search_term: str, driver_path: str, number_images, headless_toggle_sd):
-    target_path_imdb = "./dataset/images_imdb"
-    target_path_google = "./dataset/images_google"
+
     target_folder_imdb = os.path.join(
         target_path_imdb, "_".join(search_term.split(" "))
     )
     target_folder_google = os.path.join(
         target_path_google, "_".join(search_term.split(" "))
     )
-    if not os.path.exists(target_folder_imdb):
-        os.makedirs(target_folder_imdb)
-    if not os.path.exists(target_folder_google):
-        os.makedirs(target_folder_google)
+    target_folder_dataset = os.path.join(
+        target_path_dataset, "_".join(search_term.split(" "))
+    )
+    # if not os.path.exists(target_folder_imdb):
+    #     os.makedirs(target_folder_imdb)
+    # if not os.path.exists(target_folder_google):
+    #     os.makedirs(target_folder_google)
+    if not os.path.exists(target_folder_dataset):
+        os.makedirs(target_folder_dataset)
 
     if (platform == "imdb") or (platform == "both"):
         number_pages = floor(number_images / 48) + 1
@@ -325,18 +329,7 @@ def search_and_download(
                     search_url=(imdb_link + f"?page={page}"),
                 )
                 for elem in res_imdb:
-                    persist_image(target_folder_imdb, elem)
-                # elif not headless_toggle_sd:
-                #     with webdriver.Firefox(executable_path=driver_path) as wd:
-                #         res_imdb = fetch_image_urls_imdb(
-                #             search_term,
-                #             num_img_to_get_this_step,
-                #             wd=wd,
-                #             sleep_between_interactions=delay,
-                #             search_url=(imdb_link + f"?page={page}"),
-                #         )
-                #     for elem in res_imdb:
-                #         persist_image(target_folder_imdb, elem)
+                    persist_image(target_folder_dataset, elem)
                 page += 1
             else:
                 break
@@ -349,8 +342,9 @@ def search_and_download(
                 res_google = fetch_image_urls_google(
                     search_term, number_images, wd=wd, sleep_between_interactions=delay
                 )
-            for elem in res_google:
-                persist_image(target_folder_google, elem)
+            if res_google:
+                for elem in res_google:
+                    persist_image(target_folder_dataset, elem)
         elif not headless_toggle_sd:
             with webdriver.Firefox(executable_path=driver_path) as wd:
                 res_google = fetch_image_urls_google(
@@ -358,7 +352,7 @@ def search_and_download(
                 )
             if res_google:
                 for elem in res_google:
-                    persist_image(target_folder_google, elem)
+                    persist_image(target_folder_dataset, elem)
 
 
 # Running the search
