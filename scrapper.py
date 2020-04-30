@@ -20,15 +20,15 @@ from zipfile import ZipFile
 
 # Paths and options
 if os.name == "nt":
-    DRIVER_PATH = "resources/chromedriver_win.exe"  # Windows
+    DRIVER_PATH = "resources/geckodriver.exe"  # Windows
 else:  # linux
     DRIVER_PATH = (
-        "resources/chromedriver"  # Linux; might need to change for your own system
+        "resources/geckodriver"  # Linux; might need to change for your own system
     )
 
-options = webdriver.ChromeOptions()
-options.add_argument("headless")
-options.add_argument("window-size=1920x1080")
+options = webdriver.FirefoxOptions()
+options.add_argument("--headless")
+# options.add_argument("window-size=1920x1080")
 
 """
 User options:
@@ -227,12 +227,16 @@ imdb_list = "dataset/imdbactors.txt"
 def bs_get_page_imdb(name: str):
     response = requests.get(search_url_imdb.format(q=name).replace(" ", "+"))
     print(f"Searching for: {name}")
-    html_soup = BeautifulSoup(response.text, "html.parser")
-    link = html_soup.find(
-        "td", class_="result_text"
-    )  # div class where actor names listed
-    page = link.a.get("href").strip()
-    return "https://imdb.com" + page + "mediaindex"
+    try:
+        html_soup = BeautifulSoup(response.text, "html.parser")
+        link = html_soup.find(
+            "td", class_="result_text"
+        )  # div class where actor names listed
+        page = link.a.get("href").strip()
+        return "https://imdb.com" + page + "mediaindex"
+    except Exception as e:
+        print(f"ERROR: Could not find {name} on imdb: {e}")
+        return "no_result"
 
 def fetch_image_urls_imdb(
     query: str,
@@ -332,37 +336,40 @@ def search_and_download(
                 num_img_to_get_this_step = 48
             elif page == number_pages:
                 num_img_to_get_this_step = number_images % 48
-
-            if headless_toggle_sd:
-                print("Running headless")
-                with webdriver.Chrome(
-                    executable_path=driver_path, options=options
-                ) as wd:
-                    res_imdb = fetch_image_urls_imdb(
-                        search_term,
-                        num_img_to_get_this_step,
-                        wd=wd,
-                        sleep_between_interactions=delay,
-                        search_url=(bs_get_page_imdb(search_term) + f"?page={page}"),
-                    )
+            imdb_link = bs_get_page_imdb(search_term)
+            if (imdb_link != "no_result"):
+                if headless_toggle_sd:
+                    print("Running headless")
+                    with webdriver.Firefox(
+                        executable_path=driver_path, options=options
+                    ) as wd:
+                        res_imdb = fetch_image_urls_imdb(
+                            search_term,
+                            num_img_to_get_this_step,
+                            wd=wd,
+                            sleep_between_interactions=delay,
+                            search_url=(imdb_link + f"?page={page}"),
+                        )
+                        for elem in res_imdb:
+                            persist_image(target_folder_imdb, elem)
+                elif not headless_toggle_sd:
+                    with webdriver.Firefox(executable_path=driver_path) as wd:
+                        res_imdb = fetch_image_urls_imdb(
+                            search_term,
+                            num_img_to_get_this_step,
+                            wd=wd,
+                            sleep_between_interactions=delay,
+                            search_url=(imdb_link + f"?page={page}"),
+                        )
                     for elem in res_imdb:
                         persist_image(target_folder_imdb, elem)
-            elif not headless_toggle_sd:
-                with webdriver.Chrome(executable_path=driver_path) as wd:
-                    res_imdb = fetch_image_urls_imdb(
-                        search_term,
-                        num_img_to_get_this_step,
-                        wd=wd,
-                        sleep_between_interactions=delay,
-                        search_url=(bs_get_page_imdb(search_term) + f"?page={page}"),
-                    )
-                for elem in res_imdb:
-                    persist_image(target_folder_imdb, elem)
-            page += 1
+                page += 1
+            else:
+                break
     if (platform == "google") or (platform == "both"):
         if headless_toggle_sd:
             print("Running headless")
-            with webdriver.Chrome(
+            with webdriver.Firefox(
                     executable_path=driver_path, options=options
             ) as wd:
                 res_google = fetch_image_urls_google(
@@ -371,7 +378,7 @@ def search_and_download(
             for elem in res_google:
                 persist_image(target_folder_google, elem)
         elif not headless_toggle_sd:
-            with webdriver.Chrome(executable_path=driver_path) as wd:
+            with webdriver.Firefox(executable_path=driver_path) as wd:
                 res_google = fetch_image_urls_google(
                     search_term, number_images, wd=wd, sleep_between_interactions=delay
                 )
@@ -498,11 +505,12 @@ class Ui_Dialog(object):
         self.run_manual_search.setGeometry(QtCore.QRect(390, 170, 75, 23))
         self.run_manual_search.setObjectName("run_manual_search")
         self.run_manual_search.clicked.connect(
-            lambda: start_search(self.google_manual.isChecked(), self.imdb_manual.isChecked(), self.manual_search_term.toPlainText(),
+            lambda: start_search(self.google_manual.isChecked(), self.imdb_manual.isChecked(),
+                                 self.manual_search_term.toPlainText(),
                                  False, self.headless_2.isChecked(), self.sample_size_manual.value()))
-        self.stop_manual_search = QPushButton(self.manual)
-        self.stop_manual_search.setGeometry(QtCore.QRect(390, 200, 75, 23))
-        self.stop_manual_search.setObjectName("stop_manual_search")
+        # self.stop_manual_search = QPushButton(self.manual)
+        # self.stop_manual_search.setGeometry(QtCore.QRect(390, 200, 75, 23))
+        # self.stop_manual_search.setObjectName("stop_manual_search")
         self.tabWidget.addTab(self.manual, "")
         self.listsearch = QWidget()
         self.listsearch.setObjectName("listsearch")
@@ -518,6 +526,7 @@ class Ui_Dialog(object):
         self.pushButton = QPushButton(self.listsearch)
         self.pushButton.setGeometry(QtCore.QRect(20, 20, 75, 23))
         self.pushButton.setObjectName("pushButton")
+        self.pushButton.clicked.connect(lambda: generate_list(self.list_len.value()))
         # self.pushButton_4 = QPushButton(self.listsearch)
         # self.pushButton_4.setGeometry(QtCore.QRect(250, 20, 75, 23))
         # self.pushButton_4.setObjectName("pushButton_4")
@@ -558,9 +567,9 @@ class Ui_Dialog(object):
         self.run_list_search.clicked.connect(
             lambda: start_search(self.google_auto.isChecked(), self.imdb_auto.isChecked(), False, self.list_len.value(),
                                  self.headless.isChecked(), self.sample_size_list.value()))
-        self.stop_list_search = QPushButton(self.listsearch)
-        self.stop_list_search.setGeometry(QtCore.QRect(390, 200, 75, 23))
-        self.stop_list_search.setObjectName("stop_list_search")
+        # self.stop_list_search = QPushButton(self.listsearch)
+        # self.stop_list_search.setGeometry(QtCore.QRect(390, 200, 75, 23))
+        # self.stop_list_search.setObjectName("stop_list_search")
         self.tabWidget.addTab(self.listsearch, "")
         self.filter = QWidget()
         self.filter.setObjectName("filter")
@@ -616,7 +625,7 @@ class Ui_Dialog(object):
         # self.label_11.setText(_translate("Dialog", "Timeout"))
         # self.label_12.setText(_translate("Dialog", "Delay"))
         self.run_manual_search.setText(_translate("Dialog", "Run"))
-        self.stop_manual_search.setText(_translate("Dialog", "Stop"))
+        # self.stop_manual_search.setText(_translate("Dialog", "Stop"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.manual), _translate("Dialog", "Manual"))
         self.label_8.setText(_translate("Dialog", "List length"))
         self.pushButton.setText(_translate("Dialog", "Generate list"))
@@ -629,7 +638,7 @@ class Ui_Dialog(object):
         # self.label_3.setText(_translate("Dialog", "Timeout"))
         # self.label_4.setText(_translate("Dialog", "Delay"))
         self.run_list_search.setText(_translate("Dialog", "Run"))
-        self.stop_list_search.setText(_translate("Dialog", "Stop"))
+        # self.stop_list_search.setText(_translate("Dialog", "Stop"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.listsearch), _translate("Dialog", "Search from list"))
         self.run_filter.setText(_translate("Dialog", "Run"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.filter), _translate("Dialog", "Filter"))

@@ -6,6 +6,7 @@ from PIL import Image
 """
 Plots all images in a folder into one single image
 """
+
 folder = "dataset/images_google"
 def plot(folder, lines, columns):
     i = 1
