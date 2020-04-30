@@ -34,11 +34,14 @@ def get_imdb_thumbnail_links(url):
     big_container = content.find(
         "div", class_="media_index_thumb_list"
     )
-    small_containers = big_container.find_all("a")
-    for item in small_containers:
-        link = item.get("href")
-        links.append(f"{link}")
-    return links
+    if big_container:
+        small_containers = big_container.find_all("a")
+        for item in small_containers:
+            link = item.get("href")
+            links.append(f"{link}")
+        return links
+    else:
+        return False
 
 def generate_list(number):
     actors = []

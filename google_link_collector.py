@@ -13,9 +13,9 @@ def fetch_image_urls_google(
         wd.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(sleep_between_interactions)
 
-    print(f"Searching for: {query}")
+    print(f"Searching on google for: {query}")
     wd.get(search_url.format(q=query))
-
+    timeout = True
     image_urls = set()
     image_count = 0
     results_start = 0
@@ -47,51 +47,17 @@ def fetch_image_urls_google(
                 print(f"Found: {len(image_urls)} image links, done!")
                 break
         else:
-            print("Found:", len(image_urls), "image links, looking for more ...")
-            time.sleep(30)
-            return
-            load_more_button = wd.find_element_by_css_selector(".mye4qd")
-            if load_more_button:
-                wd.execute_script("document.querySelector('.mye4qd').click();")
+            if timeout:
+                timeout = False
+                print("Found:", len(image_urls), "image links, looking for more ...")
+                time.sleep(5)
+                load_more_button = wd.find_element_by_css_selector(".mye4qd")
+                if load_more_button:
+                    wd.execute_script("document.querySelector('.mye4qd').click();")
+            else:
+                break
 
         results_start = len(thumbnail_results)
 
     return image_urls
 
-
-# def persist_image(folder_path:str,url:str):
-#     try:
-#         image_content = requests.get(url).content
-#
-#     except Exception as e:
-#         print(f"ERROR - Could not download {url} - {e}")
-#
-#     try:
-#         image_file = io.BytesIO(image_content)
-#         image = Image.open(image_file).convert('RGB')
-#         file_path = os.path.join(folder_path,hashlib.sha1(image_content).hexdigest()[:10] + '.jpg')
-#         with open(file_path, 'wb') as f:
-#             image.save(f, "JPEG", quality=85)
-#         print(f"SUCCESS - saved {url} - as {file_path}")
-#     except Exception as e:
-#         print(f"ERROR - Could not save {url} - {e}")
-
-# def search_and_download(search_term: str, driver_path: str, target_path='./dataset/images_google', number_images=5):
-#     target_folder = os.path.join(target_path, '_'.join(search_term.lower().split(' ')))
-#
-#     if not os.path.exists(target_folder):
-#         os.makedirs(target_folder)
-#
-#     with webdriver.Chrome(executable_path=driver_path) as wd: # , options=options
-#         res = fetch_image_urls_google(search_term, number_images, wd=wd, sleep_between_interactions=delay)
-#         print(res)
-#
-#     for elem in res:
-#         persist_image(target_folder, elem)
-#
-# # Running the search
-# with open("dataset/imdbactors.txt","r") as input:
-#     search_terms = input.readlines()
-# for item in search_terms:
-#     search_term = item.strip()
-#     search_and_download(search_term=search_term, driver_path=DRIVER_PATH, number_images= sample_size)

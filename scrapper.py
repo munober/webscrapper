@@ -226,7 +226,7 @@ imdb_list = "dataset/imdbactors.txt"
 
 def bs_get_page_imdb(name: str):
     response = requests.get(search_url_imdb.format(q=name).replace(" ", "+"))
-    print(f"Searching for: {name}")
+    print(f"Searching on imdb for: {name}")
     try:
         html_soup = BeautifulSoup(response.text, "html.parser")
         link = html_soup.find(
@@ -245,59 +245,25 @@ def fetch_image_urls_imdb(
     sleep_between_interactions: 1,
     search_url,
 ):
-    imdb_image_path = "/html/body/div[2]/div/div[2]/div/div[1]/div[1]/div/div[3]/a"
-    timeout_counter = 0
     image_urls = set()
     thumbnail_results = get_imdb_thumbnail_links(search_url)
-    max_images_page = len(thumbnail_results)
-    # wd.get(search_url)
-    # thumbnail_results = wd.find_elements_by_xpath(imdb_image_path)
-    # max_images_page = len(thumbnail_results)
-    if max_links_to_fetch > max_images_page and max_images_page < 48:
-        print(
-            f"imdb doesn't offer enough pictures for {query}: Only another {max_images_page} available."
-        )
-        if max_images_page == 0:
-            print(f"Link for manual debugging: {search_url}")
-        max_links_to_fetch = max_images_page
-    for thumbnail_result in thumbnail_results:
-        if max_links_to_fetch > len(image_urls):
-            link = get_imdb_image_link(f"https://www.imdb.com/{thumbnail_result}")
-            if "https://m.media-amazon.com" in link:
-                image_urls.add(link)
-                print(
-                    f"{query}: {str(len(image_urls))}/{max_links_to_fetch}"
-                )
-            # try:
-                # click_target = wd.find_element_by_xpath(
-                #     imdb_image_path + f"[{str(len(image_urls) + 1)}]"
-                # )
-                # click_target.click()
-                # time.sleep(sleep_between_interactions)
-                # actual_image = wd.find_element_by_xpath("/html/head/meta[7]")
-                # if actual_image.get_attribute(
-                #     "content"
-                # ) and "http" in actual_image.get_attribute("content"):
-                #     image_urls.add(actual_image.get_attribute("content"))
-                #     print(
-                #         f"{query}: {str(len(image_urls))}/{max_links_to_fetch} at {thumbnail_result}."
-                #     )
-                #     timeout_counter = 0
-            # except Exception as e:
-            #     print(f"Failed click for {query}. Waiting... - {e}")
-            #     time.sleep(5)
-            #     timeout_counter += 1
-            #     if timeout_counter == timeout:
-            #         return image_urls
-            #     else:
-            #         continue
-            # try:
-            #     wd.execute_script("window.history.go(-1)")
-            #     time.sleep(sleep_between_interactions)
-            # except Exception as e:
-            #     print(f"Failed going back for {query}. Waiting... - {e}")
-            #     time.sleep(5)
-            #     continue
+    if thumbnail_results:
+        max_images_page = len(thumbnail_results)
+        if max_links_to_fetch > max_images_page and max_images_page < 48:
+            print(
+                f"imdb doesn't offer enough pictures for {query}: Only another {max_images_page} available."
+            )
+            if max_images_page == 0:
+                print(f"Link for manual debugging: {search_url}")
+            max_links_to_fetch = max_images_page
+        for thumbnail_result in thumbnail_results:
+            if max_links_to_fetch > len(image_urls):
+                link = get_imdb_image_link(f"https://www.imdb.com/{thumbnail_result}")
+                if "https://m.media-amazon.com" in link:
+                    image_urls.add(link)
+                    print(
+                        f"{query}: {str(len(image_urls))}/{max_links_to_fetch}"
+                    )
     return image_urls
 
 
@@ -390,8 +356,9 @@ def search_and_download(
                 res_google = fetch_image_urls_google(
                     search_term, number_images, wd=wd, sleep_between_interactions=delay
                 )
-            for elem in res_google:
-                persist_image(target_folder_google, elem)
+            if res_google:
+                for elem in res_google:
+                    persist_image(target_folder_google, elem)
 
 
 # Running the search
