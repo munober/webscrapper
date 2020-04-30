@@ -20,10 +20,10 @@ def check_folder(folder):
                     img = cv2.imread(path_parsed)
                     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                     faces = face_cascade.detectMultiScale(gray, 1.1, 4)
-                    if len(faces) == 0:
-                        print(f"DELETED: no face found in {path_parsed}")
-                        os.remove(path_parsed)
-                    else:
+                    # if len(faces) == 0:
+                    #     print(f"DELETED: no face found in {path_parsed}")
+                    #     os.remove(path_parsed)
+                    if len(faces):
                         if not os.path.exists(f"{folder}/cropped/"):
                             os.makedirs(f"{folder}/cropped/")
                         (height, width) = img.shape[:2]
