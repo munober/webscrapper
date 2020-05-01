@@ -1,4 +1,7 @@
 dataset
+dataset_removed
+links.txt
+export_preprocessing
 .idea
 *.zip
 

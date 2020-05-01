@@ -20,9 +20,9 @@ def check_folder(folder):
                     img = cv2.imread(path_parsed)
                     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                     faces = face_cascade.detectMultiScale(gray, 1.1, 4)
-                    # if len(faces) == 0:
-                    #     print(f"DELETED: no face found in {path_parsed}")
-                    #     os.remove(path_parsed)
+                    if len(faces) == 0:
+                        print(f"DELETED: no face found in {path_parsed}")
+                        os.remove(path_parsed)
                     if len(faces):
                         if not os.path.exists(f"{folder}/cropped/"):
                             os.makedirs(f"{folder}/cropped/")
@@ -31,12 +31,12 @@ def check_folder(folder):
                         for (x, y, w, h) in faces:
                             # cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
                             crop_img = img[y : (y + h), x : (x + w)]
-                            if not os.path.exists(f"{folder}/cropped/{actor[10:]}/"):
-                                os.makedirs(f"{folder}/cropped/{actor[10:]}/")
-                            cv2.imwrite(f"{folder}/cropped/{actor[10:]}/{path[:-4]}{saved_faces}.jpg", crop_img)
+                            if not os.path.exists(f"./export_preprocessing/cropped/{actor[10:]}/"):
+                                os.makedirs(f"./export_preprocessing/cropped/{actor[10:]}/")
+                            cv2.imwrite(f"./export_preprocessing/cropped/{actor[10:]}/{path[:-4]}{saved_faces}.jpg", crop_img)
                             saved_faces += 1
                             print(
-                                f"SUCCES: saved cropped version of {folder}/cropped/{actor[10:]}/{path}"
+                                f"SUCCES: saved cropped version of {actor[10:]}/{path}"
                             )
                 except Exception as e:
                     print(f"Could not load {path_parsed} - {e}")
@@ -70,11 +70,11 @@ def preprocess_image(folder, width, height, grayscale):
                     resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
                     if grayscale:
                         resized = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
-                    if not os.path.exists(f"{folder}/preprocessed/{subfolder[18:]}/"):
-                        os.makedirs(f"{folder}/preprocessed/{subfolder[18:]}/")
-                    cv2.imwrite(f"{folder}/preprocessed/{subfolder[18:]}/{path}", resized)
+                    if not os.path.exists(f"./export_preprocessing/{width}_{height}/{subfolder[30:]}/"):
+                        os.makedirs(f"./export_preprocessing/{width}_{height}/{subfolder[30:]}/")
+                    cv2.imwrite(f"./export_preprocessing/{width}_{height}/{subfolder[30:]}/{path}", resized)
                     print(
-                        f"{folder}/preprocessed/{subfolder[18:]}/{path}"
+                        f"Processed: {subfolder[18:]}/{path}"
                     )
 
                 except Exception as e:
