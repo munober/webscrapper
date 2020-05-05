@@ -116,6 +116,12 @@ parser.add_argument(
     "-z", "--zip", action="store_true", help="Add dataset folder into zipfile"
 )
 parser.add_argument("-i", "--gui", action="store_true", help="Start in GUI mode")
+parser.add_argument(
+    "-b",
+    "--browser",
+    help="Choose preferred browser: [chrome, firefox]",
+    default="chrome",
+)
 
 args = parser.parse_args()
 delay = args.delay  # seconds, 1 second is recommended
@@ -129,25 +135,26 @@ preprocess_mode = args.preprocess
 zip_mode = args.zip
 gui_mode = args.gui
 custom_list = args.custom
+browser_pref = args.browser
 target_path_imdb = "./dataset/images_imdb"
 target_path_google = "./dataset/images_google"
 target_path_dataset = "./dataset"
 
-if os.name == "nt":
-    DRIVER_PATH = "resources/geckodriver.exe"  # Windows
-else:  # linux
-    DRIVER_PATH = (
-        "resources/geckodriver"  # Linux; might need to change for your own system
-    )
-options = webdriver.FirefoxOptions()
-options.add_argument("--headless")
-
-# try:
-#     web_driver = webdriver.Firefox(executable_path=DRIVER_PATH)
-# except Exception as e:
-#     geckodriver_autoinstaller.install()
-#     web_driver = webdriver.Firefox()
-#     pass
+if browser_pref == "firefox":
+    if os.name == "nt":
+        DRIVER_PATH = "resources/geckodriver.exe"  # Windows
+    else:  # linux
+        DRIVER_PATH = "resources/geckodriver"
+    options = webdriver.FirefoxOptions()
+    options.add_argument("--headless")
+elif browser_pref == "chrome":
+    if os.name == "nt":
+        DRIVER_PATH = "resources/chromedriver_win.exe"  # Windows
+    else:  # linux
+        DRIVER_PATH = "resources/chromedriver"
+    options = webdriver.ChromeOptions()
+    options.add_argument("headless")
+    options.add_argument("window-size=1920x1080")
 
 
 def run_filter_mode():
@@ -327,11 +334,6 @@ def search_and_download(
                 num_img_to_get_this_step = number_images % 48
             imdb_link = bs_get_page_imdb(search_term)
             if imdb_link != "no_result":
-                # if headless_toggle_sd:
-                #     print("Running headless")
-                #     with webdriver.Firefox(
-                #         executable_path=driver_path, options=options
-                #     ) as wd:
                 res_imdb = fetch_image_urls_imdb(
                     search_term,
                     num_img_to_get_this_step,
@@ -345,12 +347,15 @@ def search_and_download(
             else:
                 break
     if (platform == "google") or (platform == "both"):
-        try:
-            web_driver = webdriver.Firefox(executable_path=DRIVER_PATH)
-        except Exception as e:
-            geckodriver_autoinstaller.install()
-            web_driver = webdriver.Firefox()
-            pass
+        if browser_pref == "firefox":
+            try:
+                web_driver = webdriver.Firefox(executable_path=DRIVER_PATH)
+            except Exception as e:
+                geckodriver_autoinstaller.install()
+                web_driver = webdriver.Firefox()
+                pass
+        elif browser_pref == "chrome":
+            web_driver = webdriver.Chrome(executable_path=DRIVER_PATH)
         if headless_toggle_sd:
             print("Running headless")
             with web_driver as wd:
