@@ -3,3 +3,6 @@ numpy
 opencv-python
 black
 geckodriver-autoinstaller
+requests
+bs4
+Pillow

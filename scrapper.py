@@ -137,9 +137,22 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-geckodriver_autoinstaller.install()
+# geckodriver_autoinstaller.install()
+#
+# web_driver = webdriver.Firefox()
+# options = webdriver.FirefoxOptions()
+# options.add_argument("--headless")
 
-web_driver = webdriver.Firefox()
+# Paths and options
+if os.name == "nt":
+    DRIVER_PATH = "resources/geckodriver.exe"  # Windows
+else:  # linux
+    DRIVER_PATH = (
+        "resources/geckodriver"  # Linux; might need to change for your own system
+    )
+
+web_driver = webdriver.Firefox(executable_path=DRIVER_PATH)
+
 options = webdriver.FirefoxOptions()
 options.add_argument("--headless")
 
@@ -178,9 +191,11 @@ def run_filter_mode():
             raise
         pass
 
-    if not os.listdir(target_path_dataset):
-        # TODO error handling more than just a print?
-        print("ERROR: To filter, add images to the dataset folder")
+
+    if os.listdir(target_path_dataset):
+        check_folder(target_path_dataset)
+    else:
+        print("ERROR: You first need to fill up the dataset folder")
 
 
 def run_zip():
