@@ -127,6 +127,7 @@ run_headless = args.headless
 filter_images = args.filter
 preprocess_images = args.preprocess
 list_len = int(args.list)
+list_len = int(args.list)
 zip_mode = args.zip
 gui_mode = args.gui
 custom_list = args.custom
@@ -224,10 +225,6 @@ def run_preprocesses(width, height, grayscale):
             )
         except Exception as e:
             print("Failed to preprocess images: {}".format(e))
-            print(
-                "Please use scrapper.py -f to filter for faces first, then try preprocessing"
-            )
-
     else:
         print("You have to set the width and height arguments first")
 
@@ -301,20 +298,9 @@ def persist_image(folder_path: str, url: str):
 def search_and_download(
     platform: str, search_term: str, number_images, headless_toggle_sd
 ):
-
-    # target_folder_imdb = os.path.join(
-    #     target_path_imdb, "_".join(search_term.split(" "))
-    # )
-    # target_folder_google = os.path.join(
-    #     target_path_google, "_".join(search_term.split(" "))
-    # )
     target_folder_dataset = os.path.join(
         target_path_dataset, "_".join(search_term.split(" "))
     )
-    # if not os.path.exists(target_folder_imdb):
-    #     os.makedirs(target_folder_imdb)
-    # if not os.path.exists(target_folder_google):
-    #     os.makedirs(target_folder_google)
     if not os.path.exists(target_folder_dataset):
         os.makedirs(target_folder_dataset)
 
@@ -694,6 +680,8 @@ else:
     if filter_images:
         run_filter()
     if preprocess_images:
-        run_preprocesses(width=args.width, height=args.height, grayscale=args.grayscale)
+        run_preprocesses(
+            width=abs(args.width), height=abs(args.height), grayscale=args.grayscale
+        )
     if zip_mode:
         run_zip()

@@ -1,7 +1,5 @@
 import cv2
 import os
-from pathlib import Path
-import numpy as np
 
 
 def check_folder(folder):
@@ -27,12 +25,8 @@ def check_folder(folder):
                             print(f"DELETED: no face found in {path_parsed}")
                             os.remove(path_parsed)
                         if len(faces):
-                            # if not os.path.exists(f"{folder}/cropped/"):
-                            #     os.makedirs(f"{folder}/cropped/")
-                            (height, width) = img.shape[:2]
                             saved_faces = 0
                             for (x, y, w, h) in faces:
-                                # cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
                                 crop_img = img[y : (y + h), x : (x + w)]
                                 if not os.path.exists(
                                     f"./export_preprocessing/cropped/{actor[10:]}/"
@@ -71,12 +65,6 @@ def preprocess_image(folder, width, height, grayscale):
                 path_parsed = f"{subfolder}/{path}"
                 try:
                     img = cv2.imread(path_parsed)
-                    # if not os.path.exists(f"{subfolder}/preprocessed/"):
-                    #     os.makedirs(f"{subfolder}/preprocessed/")
-                    # Rescaling with preserved aspect ratio
-                    # scale_percent = 60
-                    # height = int(img.shape[0] * scale_percent / 100)
-                    # width = int(img.shape[1] * scale_percent / 100)
                     dim = (width, height)
                     resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
                     if grayscale:
