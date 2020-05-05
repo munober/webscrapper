@@ -118,26 +118,6 @@ parser.add_argument(
 parser.add_argument("-i", "--gui", action="store_true", help="Start in GUI mode")
 
 args = parser.parse_args()
-
-# Paths and options
-if os.name == "nt":
-    DRIVER_PATH = "resources/geckodriver.exe"  # Windows
-else:  # linux
-    DRIVER_PATH = (
-        "resources/geckodriver"  # Linux; might need to change for your own system
-    )
-options = webdriver.FirefoxOptions()
-options.add_argument("--headless")
-
-try:
-	web_driver = webdriver.Firefox(executable_path=DRIVER_PATH)
-except Exception as e:
-	geckodriver_autoinstaller.install()
-	web_driver = webdriver.Firefox()
-	options = webdriver.FirefoxOptions()
-	options.add_argument("--headless")
-
-
 delay = args.delay  # seconds, 1 second is recommended
 timeout = (
     args.timeout
@@ -153,19 +133,27 @@ target_path_imdb = "./dataset/images_imdb"
 target_path_google = "./dataset/images_google"
 target_path_dataset = "./dataset"
 
+if os.name == "nt":
+    DRIVER_PATH = "resources/geckodriver.exe"  # Windows
+else:  # linux
+    DRIVER_PATH = (
+        "resources/geckodriver"  # Linux; might need to change for your own system
+    )
+options = webdriver.FirefoxOptions()
+options.add_argument("--headless")
+
+# try:
+#     web_driver = webdriver.Firefox(executable_path=DRIVER_PATH)
+# except Exception as e:
+#     geckodriver_autoinstaller.install()
+#     web_driver = webdriver.Firefox()
+#     pass
+
 
 def run_filter_mode():
     print(
         "Entering filter mode: will delete all non-face images and add a cropped folder for each actor"
     )
-    # if os.path.exists(target_path_google):
-    #     check_folder(target_path_google)
-    # else:
-    #     print("No google dataset folder found")
-    # if os.path.exists(target_path_imdb):
-    #     check_folder(target_path_imdb)
-    # else:
-    #     print("No imdb dataset folder found")
     try:
         os.makedirs(target_path_dataset)
     except OSError as e:
@@ -232,6 +220,9 @@ def run_preprocesses(width, height, grayscale, zip=False):
             )
         except Exception as e:
             print("Failed to preprocess images: {}".format(e))
+            print(
+                "Please use scrapper.py -f to filter for faces first, then try preprocessing"
+            )
 
     else:
         print("You have to set the width and height arguments first")
@@ -354,6 +345,12 @@ def search_and_download(
             else:
                 break
     if (platform == "google") or (platform == "both"):
+        try:
+            web_driver = webdriver.Firefox(executable_path=DRIVER_PATH)
+        except Exception as e:
+            geckodriver_autoinstaller.install()
+            web_driver = webdriver.Firefox()
+            pass
         if headless_toggle_sd:
             print("Running headless")
             with web_driver as wd:

@@ -26,8 +26,8 @@ def check_folder(folder):
                         print(f"DELETED: no face found in {path_parsed}")
                         os.remove(path_parsed)
                     if len(faces):
-                        if not os.path.exists(f"{folder}/cropped/"):
-                            os.makedirs(f"{folder}/cropped/")
+                        # if not os.path.exists(f"{folder}/cropped/"):
+                        #     os.makedirs(f"{folder}/cropped/")
                         (height, width) = img.shape[:2]
                         saved_faces = 0
                         for (x, y, w, h) in faces:
@@ -56,7 +56,6 @@ def check_folder(folder):
 
 
 def preprocess_image(folder, width, height, grayscale):
-    # TODO grayscale
     subfolder_paths = []
     for subfolder in os.listdir(folder):
         try:
