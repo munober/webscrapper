@@ -142,19 +142,21 @@ target_path_dataset = "./dataset"
 
 if browser_pref == "firefox":
     if os.name == "nt":
-        DRIVER_PATH = "resources/geckodriver.exe"  # Windows
+        web_driver = webdriver.Firefox(executable_path="resources/geckodriver.exe")
     else:  # linux
-        DRIVER_PATH = "resources/geckodriver"
+        geckodriver_autoinstaller.install()
+        web_driver = webdriver.Chrome()
     options = webdriver.FirefoxOptions()
-    options.add_argument("--headless")
 elif browser_pref == "chrome":
     if os.name == "nt":
-        DRIVER_PATH = "resources/chromedriver_win.exe"  # Windows
+        web_driver = webdriver.Chrome(executable_path="resources/chromedriver_win.exe")
     else:  # linux
-        DRIVER_PATH = "resources/chromedriver"
+        geckodriver_autoinstaller.install()
+        web_driver = webdriver.Firefox()
     options = webdriver.ChromeOptions()
-    options.add_argument("headless")
-    options.add_argument("window-size=1920x1080")
+
+if run_headless:
+    options.add_argument("--headless")
 
 
 def run_filter_mode():
@@ -347,29 +349,25 @@ def search_and_download(
             else:
                 break
     if (platform == "google") or (platform == "both"):
-        if browser_pref == "firefox":
-            try:
-                web_driver = webdriver.Firefox(executable_path=DRIVER_PATH)
-            except Exception as e:
-                geckodriver_autoinstaller.install()
-                web_driver = webdriver.Firefox()
-                pass
-        elif browser_pref == "chrome":
-            web_driver = webdriver.Chrome(executable_path=DRIVER_PATH)
         if headless_toggle_sd:
             print("Running headless")
             with web_driver as wd:
                 res_google = fetch_image_urls_google(
-                    search_term, number_images, wd=wd, sleep_between_interactions=delay
+                    search_term,
+                    number_images,
+                    wd=web_driver,
+                    sleep_between_interactions=delay,
                 )
             if res_google:
                 for elem in res_google:
                     persist_image(target_folder_dataset, elem)
         elif not headless_toggle_sd:
-            with web_driver as wd:
-                res_google = fetch_image_urls_google(
-                    search_term, number_images, wd=wd, sleep_between_interactions=delay
-                )
+            res_google = fetch_image_urls_google(
+                search_term,
+                number_images,
+                wd=web_driver,
+                sleep_between_interactions=delay,
+            )
             if res_google:
                 for elem in res_google:
                     persist_image(target_folder_dataset, elem)
