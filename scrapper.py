@@ -8,6 +8,7 @@ from PyQt5 import QtCore, QtGui
 from PyQt5.QtWidgets import *
 
 from selenium import webdriver
+import geckodriver_autoinstaller
 import time, os, requests, io
 from bs4 import BeautifulSoup
 from PIL import Image
@@ -17,18 +18,6 @@ from namelist_generator import generate_list, get_imdb_thumbnail_links, get_imdb
 from google_link_collector import fetch_image_urls_google
 from faces import check_folder, preprocess_image
 from zipfile import ZipFile
-
-# Paths and options
-if os.name == "nt":
-    DRIVER_PATH = "resources/geckodriver.exe"  # Windows
-else:  # linux
-    DRIVER_PATH = (
-        "resources/geckodriver"  # Linux; might need to change for your own system
-    )
-
-options = webdriver.FirefoxOptions()
-options.add_argument("--headless")
-# options.add_argument("window-size=1920x1080")
 
 """
 User options:
@@ -146,6 +135,13 @@ parser.add_argument(
 )
 
 args = parser.parse_args()
+
+geckodriver_autoinstaller.install()
+
+web_driver = webdriver.Firefox()
+options = webdriver.FirefoxOptions()
+options.add_argument("--headless")
+
 
 delay = args.delay  # seconds, 1 second is recommended
 timeout = (
@@ -278,7 +274,7 @@ def persist_image(folder_path: str, url: str):
 
 # standard download size is 5
 def search_and_download(
-    platform: str, search_term: str, driver_path: str, number_images, headless_toggle_sd):
+    platform: str, search_term: str, number_images, headless_toggle_sd):
 
     target_folder_imdb = os.path.join(
         target_path_imdb, "_".join(search_term.split(" "))
@@ -326,9 +322,7 @@ def search_and_download(
     if (platform == "google") or (platform == "both"):
         if headless_toggle_sd:
             print("Running headless")
-            with webdriver.Firefox(
-                    executable_path=driver_path, options=options
-            ) as wd:
+            with web_driver as wd:
                 res_google = fetch_image_urls_google(
                     search_term, number_images, wd=wd, sleep_between_interactions=delay
                 )
@@ -336,7 +330,7 @@ def search_and_download(
                 for elem in res_google:
                     persist_image(target_folder_dataset, elem)
         elif not headless_toggle_sd:
-            with webdriver.Firefox(executable_path=driver_path) as wd:
+            with web_driver as wd:
                 res_google = fetch_image_urls_google(
                     search_term, number_images, wd=wd, sleep_between_interactions=delay
                 )
@@ -356,7 +350,6 @@ def run_search(manual_search, platform, headless_toggle_orig, rs_sample_size):
                 search_and_download(
                     platform=platform,
                     search_term=item.strip(),
-                    driver_path=DRIVER_PATH,
                     number_images=rs_sample_size,
                     headless_toggle_sd=headless_toggle_orig
                 )
@@ -371,7 +364,6 @@ def run_search(manual_search, platform, headless_toggle_orig, rs_sample_size):
                     search_and_download(
                         platform=platform,
                         search_term=item.strip(),
-                        driver_path=DRIVER_PATH,
                         number_images=rs_sample_size,
                         headless_toggle_sd=headless_toggle_orig
                     )
@@ -380,7 +372,6 @@ def run_search(manual_search, platform, headless_toggle_orig, rs_sample_size):
         search_and_download(
             platform=platform,
             search_term=manual_search.strip(),
-            driver_path=DRIVER_PATH,
             number_images=rs_sample_size,
             headless_toggle_sd=headless_toggle_orig
         )
