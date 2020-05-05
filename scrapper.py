@@ -117,10 +117,7 @@ parser.add_argument(
     default="chrome",
 )
 parser.add_argument(
-    "-no",
-    "--nosearch",
-    help="Don't run any search or download",
-    action="store_true"
+    "-no", "--nosearch", help="Don't run any search or download", action="store_true"
 )
 
 args = parser.parse_args()
@@ -714,40 +711,3 @@ else:
         )
     if zip_mode:
         run_zip()
-# else:
-#     if filter_mode:
-#         run_filter_mode()
-#     if preprocess_mode:
-#         run_preprocesses(
-#             width=args.width, height=args.height, grayscale=args.grayscale, zip=zip_mode
-#         )
-#     if zip_mode:
-#         run_zip()
-#     if (not filter_mode) and (not preprocess_mode) and (not zip_mode):
-#         if args.platform == "google":
-#             start_search(
-#                 google=True,
-#                 imdb=False,
-#                 manual=args.manual,
-#                 list=args.list,
-#                 headless_switch=run_headless,
-#                 ss_sameple_size=args.sample_size,
-#             )
-#         elif args.platform == "imdb":
-#             start_search(
-#                 google=False,
-#                 imdb=True,
-#                 manual=args.manual,
-#                 list=args.list,
-#                 headless_switch=run_headless,
-#                 ss_sameple_size=args.sample_size,
-#             )
-#         elif args.platform == "both":
-#             start_search(
-#                 google=True,
-#                 imdb=True,
-#                 manual=args.manual,
-#                 list=args.list,
-#                 headless_switch=run_headless,
-#                 ss_sameple_size=args.sample_size,
-#             )
