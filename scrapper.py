@@ -90,15 +90,15 @@ parser.add_argument(
 parser.add_argument(
     "-f",
     "--filter",
-    action="store_true",
+    action="store_false",
     help="OpenCV face filter. To be used independent of search function, "
     "by default turned off. Type -f on to apply to dataset",
 )
 parser.add_argument(
-    "-e", "--headless", action="store_true", help="Run in headless mode"
+    "-e", "--headless", action="store_false", help="Run in headless mode"
 )
 parser.add_argument(
-    "-pp", "--preprocess", action="store_true", help="Run preprocessing mode"
+    "-pp", "--preprocess", action="store_false", help="Run preprocessing mode"
 )
 parser.add_argument(
     "-w", "--width", type=int, help="Set image preprocessing width", default="0"
