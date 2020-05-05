@@ -119,24 +119,24 @@ parser.add_argument("-i", "--gui", action="store_true", help="Start in GUI mode"
 
 args = parser.parse_args()
 
-# geckodriver_autoinstaller.install()
-#
-# web_driver = webdriver.Firefox()
-# options = webdriver.FirefoxOptions()
-# options.add_argument("--headless")
+geckodriver_autoinstaller.install()
 
-# Paths and options
-if os.name == "nt":
-    DRIVER_PATH = "resources/geckodriver.exe"  # Windows
-else:  # linux
-    DRIVER_PATH = (
-        "resources/geckodriver"  # Linux; might need to change for your own system
-    )
-
-web_driver = webdriver.Firefox(executable_path=DRIVER_PATH)
-
+web_driver = webdriver.Firefox()
 options = webdriver.FirefoxOptions()
 options.add_argument("--headless")
+
+## Paths and options
+#if os.name == "nt":
+#    DRIVER_PATH = "resources/geckodriver.exe"  # Windows
+#else:  # linux
+#    DRIVER_PATH = (
+#        "resources/geckodriver"  # Linux; might need to change for your own system
+#    )
+
+# web_driver = webdriver.Firefox(executable_path=DRIVER_PATH)
+
+# options = webdriver.FirefoxOptions()
+# options.add_argument("--headless")
 
 
 delay = args.delay  # seconds, 1 second is recommended
