@@ -74,7 +74,7 @@ def preprocess_image(folder, width, height, grayscale):
                         os.makedirs(f"./export_preprocessing/{width}_{height}/{subfolder[30:]}/")
                     cv2.imwrite(f"./export_preprocessing/{width}_{height}/{subfolder[30:]}/{path}", resized)
                     print(
-                        f"Processed: {subfolder[18:]}/{path}"
+                        f"Processed: {subfolder[31:]}/{path}"
                     )
 
                 except Exception as e:
