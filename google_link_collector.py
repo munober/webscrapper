@@ -52,7 +52,9 @@ def fetch_image_urls_google(
             else:
                 if timeout:
                     timeout = False
-                    print("Found:", len(image_urls), "image links, looking for more ...")
+                    print(
+                        "Found:", len(image_urls), "image links, looking for more ..."
+                    )
                     time.sleep(5)
                     load_more_button = wd.find_element_by_css_selector(".mye4qd")
                     if load_more_button:
@@ -65,4 +67,3 @@ def fetch_image_urls_google(
             continue
 
     return image_urls
-
