@@ -24,12 +24,6 @@ from google_link_collector import fetch_image_urls_google
 from faces import check_folder, preprocess_image
 from zipfile import ZipFile
 
-"""
-User options:
-help, google/imdb, sample_size, manual/list search, generate list,
-run_headless, delay, timeout, list, manual_search, search term,
-about, version, github link
-"""
 parser = argparse.ArgumentParser(
     description="Web Scraper for images on Google and IMDb."
 )
@@ -95,16 +89,16 @@ parser.add_argument(
     "by default turned off. Type -f on to apply to dataset",
 )
 parser.add_argument(
-    "-e", "--headless", action="store_false", help="Run in headless mode"
+    "-e", "--headless", action="store_true", help="Run in headless mode"
 )
 parser.add_argument(
     "-pp", "--preprocess", action="store_false", help="Run preprocessing mode"
 )
 parser.add_argument(
-    "-w", "--width", type=int, help="Set image preprocessing width", default="0"
+    "-w", "--width", type=int, help="Set image preprocessing width", default="160"
 )
 parser.add_argument(
-    "-ht", "--height", type=int, help="Set image preprocessing height", default="0"
+    "-ht", "--height", type=int, help="Set image preprocessing height", default="160"
 )
 parser.add_argument(
     "-gs",
@@ -122,8 +116,15 @@ parser.add_argument(
     help="Choose preferred browser: [chrome, firefox]",
     default="chrome",
 )
+parser.add_argument(
+    "-no",
+    "--nosearch",
+    help="Don't run any search or download",
+    action="store_true"
+)
 
 args = parser.parse_args()
+non_search = args.nosearch
 delay = args.delay  # seconds, 1 second is recommended
 timeout = (
     args.timeout
@@ -677,15 +678,7 @@ def run_gui():
 if gui_mode:
     run_gui()
 else:
-    if filter_mode:
-        run_filter_mode()
-    if preprocess_mode:
-        run_preprocesses(
-            width=args.width, height=args.height, grayscale=args.grayscale, zip=zip_mode
-        )
-    if zip_mode:
-        run_zip()
-    if (not filter_mode) and (not preprocess_mode) and (not zip_mode):
+    if not non_search:
         if args.platform == "google":
             start_search(
                 google=True,
@@ -713,3 +706,48 @@ else:
                 headless_switch=run_headless,
                 ss_sameple_size=args.sample_size,
             )
+    if filter_mode:
+        run_filter_mode()
+    if preprocess_mode:
+        run_preprocesses(
+            width=args.width, height=args.height, grayscale=args.grayscale, zip=zip_mode
+        )
+    if zip_mode:
+        run_zip()
+# else:
+#     if filter_mode:
+#         run_filter_mode()
+#     if preprocess_mode:
+#         run_preprocesses(
+#             width=args.width, height=args.height, grayscale=args.grayscale, zip=zip_mode
+#         )
+#     if zip_mode:
+#         run_zip()
+#     if (not filter_mode) and (not preprocess_mode) and (not zip_mode):
+#         if args.platform == "google":
+#             start_search(
+#                 google=True,
+#                 imdb=False,
+#                 manual=args.manual,
+#                 list=args.list,
+#                 headless_switch=run_headless,
+#                 ss_sameple_size=args.sample_size,
+#             )
+#         elif args.platform == "imdb":
+#             start_search(
+#                 google=False,
+#                 imdb=True,
+#                 manual=args.manual,
+#                 list=args.list,
+#                 headless_switch=run_headless,
+#                 ss_sameple_size=args.sample_size,
+#             )
+#         elif args.platform == "both":
+#             start_search(
+#                 google=True,
+#                 imdb=True,
+#                 manual=args.manual,
+#                 list=args.list,
+#                 headless_switch=run_headless,
+#                 ss_sameple_size=args.sample_size,
+#             )
