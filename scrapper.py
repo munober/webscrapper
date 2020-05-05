@@ -1,6 +1,7 @@
 #! /bin/python
 
 import os
+import errno
 import hashlib
 import sys
 
@@ -159,7 +160,9 @@ target_path_google = "./dataset/images_google"
 target_path_dataset = "./dataset"
 
 def run_filter_mode():
-    print("Entering filter mode: will delete all non-face images and add a cropped folder for each actor")
+    print(
+        "Entering filter mode: will delete all non-face images and add a cropped folder for each actor"
+    )
     # if os.path.exists(target_path_google):
     #     check_folder(target_path_google)
     # else:
@@ -168,42 +171,75 @@ def run_filter_mode():
     #     check_folder(target_path_imdb)
     # else:
     #     print("No imdb dataset folder found")
-    if os.path.exists(target_path_dataset):
-        check_folder(folder=target_path_dataset)
-    else:
+    try:
         os.makedirs(target_path_dataset)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
+        pass
+
+    if not os.listdir(target_path_dataset):
+        # TODO error handling more than just a print?
         print("ERROR: To filter, add images to the dataset folder")
 
-def run_zip():
-    if os.path.exists(target_path_dataset):
-        try:
-            with ZipFile('dataset_zipped.zip', 'w') as zipObj:
-                for folderName, subfolders, filenames in os.walk(target_path_dataset):
-                    for filename in filenames:
-                        filePath = os.path.join(folderName, filename)
-                        zipObj.write(filePath)
-        except Exception as e:
-            print(f"Could not zip dataset - {e}")
-    else:
-        os.makedirs(target_path_dataset)
-        print("no dataset folder found. Created dataset folder. Fill this folder and try again")
 
-def run_preprocesses(width, height, grayscale, zip = False):
+def run_zip():
+    try:
+        os.makedirs(target_path_dataset)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
+        pass
+
+    if not os.listdir(target_path_dataset):
+        # TODO error handling more than just a print?
+        print(
+            "no dataset folder found. Created dataset folder. Fill this folder and try again"
+        )
+        return
+
+    try:
+        with ZipFile("dataset_zipped.zip", "w") as zipObj:
+            for folderName, subfolders, filenames in os.walk(target_path_dataset):
+                for filename in filenames:
+                    filePath = os.path.join(folderName, filename)
+                    zipObj.write(filePath)
+    except Exception as e:
+        print(f"Could not zip dataset - {e}")
+
+
+def run_preprocesses(width, height, grayscale, zip=False):
     if width != 0 and height != 0:
         str = " "
         if grayscale:
             str = "and convert to grayscale"
         print(f"Entering pre-processing mode: will change image size {str}")
-        if os.path.exists(f"./export_preprocessing/cropped"):
-            preprocess_image(folder=f"./export_preprocessing/cropped",
-                             width=width,
-                             height=height,
-                             grayscale=grayscale);
-        else:
+
+        try:
             os.makedirs(target_path_dataset)
-            print("Add the images you want to preprocess in the dataset folder")
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+            pass
+
+        if not os.listdir(target_path_dataset):
+            # TODO error handling more than just a print?
+            print("[ERROR]: Need images to process in the the dataset folder")
+            return
+
+        try:
+            preprocess_image(
+                folder=f"./export_preprocessing/cropped",
+                width=width,
+                height=height,
+                grayscale=grayscale,
+            )
+        except Exception as e:
+            print("Failed to preprocess images: {}".format(e))
+
     else:
         print("You have to set the width and height arguments first")
+
     if zip:
         run_zip()
 
