@@ -82,17 +82,13 @@ parser.add_argument(
     default="1",
 )
 parser.add_argument(
-    "-f",
-    "--filter",
-    action="store_false",
-    help="OpenCV face filter. To be used independent of search function, "
-    "by default turned off. Type -f on to apply to dataset",
+    "-f", "--filter", action="store_false", help="Skip OpenCV face filter",
 )
 parser.add_argument(
-    "-e", "--headless", action="store_true", help="Run in headless mode"
+    "-e", "--headless", action="store_false", help="Don't run in headless mode"
 )
 parser.add_argument(
-    "-pp", "--preprocess", action="store_false", help="Run preprocessing mode"
+    "-pp", "--preprocess", action="store_false", help="Skip preprocessing of images"
 )
 parser.add_argument(
     "-w", "--width", type=int, help="Set image preprocessing width", default="160"
@@ -107,7 +103,7 @@ parser.add_argument(
     help="Set preprocessing color to grayscale",
 )
 parser.add_argument(
-    "-z", "--zip", action="store_true", help="Add dataset folder into zipfile"
+    "-z", "--zip", action="store_false", help="Skip adding dataset folder into zipfile"
 )
 parser.add_argument("-i", "--gui", action="store_true", help="Start in GUI mode")
 parser.add_argument(
@@ -128,8 +124,9 @@ timeout = (
 )  # number of times script will try hitting again after error; script will save work and quit if unsuccesful
 manual_search = args.manual
 run_headless = args.headless
-filter_mode = args.filter
-preprocess_mode = args.preprocess
+filter_images = args.filter
+preprocess_images = args.preprocess
+list_len = int(args.list)
 zip_mode = args.zip
 gui_mode = args.gui
 custom_list = args.custom
@@ -157,7 +154,7 @@ if run_headless:
     options.add_argument("--headless")
 
 
-def run_filter_mode():
+def run_filter():
     print(
         "Entering filter mode: will delete all non-face images and add a cropped folder for each actor"
     )
@@ -199,7 +196,7 @@ def run_zip():
         print(f"Could not zip dataset - {e}")
 
 
-def run_preprocesses(width, height, grayscale, zip=False):
+def run_preprocesses(width, height, grayscale):
     if width != 0 and height != 0:
         str = " "
         if grayscale:
@@ -233,9 +230,6 @@ def run_preprocesses(width, height, grayscale, zip=False):
 
     else:
         print("You have to set the width and height arguments first")
-
-    if zip:
-        run_zip()
 
 
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
@@ -308,12 +302,12 @@ def search_and_download(
     platform: str, search_term: str, number_images, headless_toggle_sd
 ):
 
-    target_folder_imdb = os.path.join(
-        target_path_imdb, "_".join(search_term.split(" "))
-    )
-    target_folder_google = os.path.join(
-        target_path_google, "_".join(search_term.split(" "))
-    )
+    # target_folder_imdb = os.path.join(
+    #     target_path_imdb, "_".join(search_term.split(" "))
+    # )
+    # target_folder_google = os.path.join(
+    #     target_path_google, "_".join(search_term.split(" "))
+    # )
     target_folder_dataset = os.path.join(
         target_path_dataset, "_".join(search_term.split(" "))
     )
@@ -324,7 +318,7 @@ def search_and_download(
     if not os.path.exists(target_folder_dataset):
         os.makedirs(target_folder_dataset)
 
-    if (platform == "imdb") or (platform == "both"):
+    if platform == "imdb":
         number_pages = floor(number_images / 48) + 1
         page = 1
         while page <= number_pages:
@@ -337,7 +331,6 @@ def search_and_download(
                 res_imdb = fetch_image_urls_imdb(
                     search_term,
                     num_img_to_get_this_step,
-                    # wd=wd,
                     sleep_between_interactions=delay,
                     search_url=(imdb_link + f"?page={page}"),
                 )
@@ -346,7 +339,7 @@ def search_and_download(
                 page += 1
             else:
                 break
-    if (platform == "google") or (platform == "both"):
+    elif platform == "google":
         if headless_toggle_sd:
             print("Running headless")
             with web_driver as wd:
@@ -356,6 +349,7 @@ def search_and_download(
                     wd=web_driver,
                     sleep_between_interactions=delay,
                 )
+
             if res_google:
                 for elem in res_google:
                     persist_image(target_folder_dataset, elem)
@@ -373,32 +367,31 @@ def search_and_download(
 
 # Running the search
 def run_search(manual_search, platform, headless_toggle_orig, rs_sample_size):
+    global list_len
     if not manual_search:
         if custom_list == "":
+            list = imdb_list
             print("Search based on automatically generated names list")
-            with open(imdb_list, "r") as input:
-                search_terms = input.readlines()
-            for item in search_terms:
-                search_and_download(
-                    platform=platform,
-                    search_term=item.strip(),
-                    number_images=rs_sample_size,
-                    headless_toggle_sd=headless_toggle_orig,
-                )
         elif custom_list != "":
+            list = custom_list
             if not os.path.exists(custom_list):
                 print("No file found at given path")
             else:
                 print(f"Search based on given custom list at {custom_list}")
-                with open(custom_list, "r") as input:
-                    search_terms = input.readlines()
-                for item in search_terms:
-                    search_and_download(
-                        platform=platform,
-                        search_term=item.strip(),
-                        number_images=rs_sample_size,
-                        headless_toggle_sd=headless_toggle_orig,
-                    )
+
+        with open(list, "r") as input:
+            search_terms = input.readlines()
+        for item in search_terms:
+            search_and_download(
+                platform=platform,
+                search_term=item.strip(),
+                number_images=rs_sample_size,
+                headless_toggle_sd=headless_toggle_orig,
+            )
+            list_len -= 1
+            if list_len == 0:
+                return
+
     elif manual_search:
         print(f"Manual search: {manual_search}")
         search_and_download(
@@ -409,27 +402,19 @@ def run_search(manual_search, platform, headless_toggle_orig, rs_sample_size):
         )
 
 
-def start_search(google, imdb, manual, list, headless_switch, ss_sameple_size):
+def start_search(google, manual, headless_switch, ss_sameple_size):
+    global list_len
+    if list_len == 0:
+        return
     if not manual and not os.path.exists(imdb_list) and custom_list == "":
-        list_len = int(list)
-        if list_len > 5000:
-            list_len = 5000
-            print("Maximum actors' names list length is 5000, set length to 5000")
-        elif list_len == 0:
-            list_len = 1
-            print("Minimum actors' names list length is 1, set length to 1")
         print(f"No actors names list found, generating one with {list_len} elements")
         generate_list(list_len)
         print("SUCCESS: List generated")
 
-    if google and not imdb:
+    if google:
         run_search(manual, "google", headless_switch, ss_sameple_size)
-    elif imdb and not google:
-        run_search(manual, "imdb", headless_switch, ss_sameple_size)
-    elif google and imdb:
-        run_search(manual, "both", headless_switch, ss_sameple_size)
     else:
-        print("Choose one of the following as search platform: [google, imdb, both]")
+        run_search(manual, "imdb", headless_switch, ss_sameple_size)
 
 
 # GUI related stuff
@@ -573,7 +558,7 @@ class Ui_Dialog(object):
         self.run_filter = QPushButton(self.filter)
         self.run_filter.setGeometry(QtCore.QRect(390, 170, 75, 23))
         self.run_filter.setObjectName("run_filter")
-        self.run_filter.clicked.connect(run_filter_mode)
+        self.run_filter.clicked.connect(run_filter)
         self.tabWidget.addTab(self.filter, "")
         self.preprocesses = QWidget()
         self.preprocesses.setObjectName("preprocesses")
@@ -675,39 +660,40 @@ def run_gui():
 if gui_mode:
     run_gui()
 else:
-    if not non_search:
-        if args.platform == "google":
-            start_search(
-                google=True,
-                imdb=False,
-                manual=args.manual,
-                list=args.list,
-                headless_switch=run_headless,
-                ss_sameple_size=args.sample_size,
-            )
-        elif args.platform == "imdb":
-            start_search(
-                google=False,
-                imdb=True,
-                manual=args.manual,
-                list=args.list,
-                headless_switch=run_headless,
-                ss_sameple_size=args.sample_size,
-            )
-        elif args.platform == "both":
-            start_search(
-                google=True,
-                imdb=True,
-                manual=args.manual,
-                list=args.list,
-                headless_switch=run_headless,
-                ss_sameple_size=args.sample_size,
-            )
-    if filter_mode:
-        run_filter_mode()
-    if preprocess_mode:
-        run_preprocesses(
-            width=args.width, height=args.height, grayscale=args.grayscale, zip=zip_mode
+    if args.platform == "google":
+        start_search(
+            google=True,
+            imdb=False,
+            manual=args.manual,
+            headless_switch=run_headless,
+            ss_sameple_size=args.sample_size,
         )
+    elif args.platform == "imdb":
+        start_search(
+            google=False,
+            manual=args.manual,
+            headless_switch=run_headless,
+            ss_sameple_size=args.sample_size,
+        )
+    elif args.platform == "both":
+        start_search(
+            google=False,
+            manual=args.manual,
+            headless_switch=run_headless,
+            ss_sameple_size=args.sample_size,
+        )
+        start_search(
+            google=True,
+            manual=args.manual,
+            headless_switch=run_headless,
+            ss_sameple_size=args.sample_size,
+        )
+    else:
+        print("Choose one of the following as search platform: [google, imdb, both]")
+
+    if filter_images:
+        run_filter()
+    if preprocess_images:
+        run_preprocesses(width=args.width, height=args.height, grayscale=args.grayscale)
     if zip_mode:
         run_zip()
