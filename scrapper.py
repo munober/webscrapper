@@ -15,7 +15,11 @@ from bs4 import BeautifulSoup
 from PIL import Image
 from math import floor
 import argparse
-from namelist_generator import generate_list, get_imdb_thumbnail_links, get_imdb_image_link
+from namelist_generator import (
+    generate_list,
+    get_imdb_thumbnail_links,
+    get_imdb_image_link,
+)
 from google_link_collector import fetch_image_urls_google
 from faces import check_folder, preprocess_image
 from zipfile import ZipFile
@@ -91,49 +95,27 @@ parser.add_argument(
     "by default turned off. Type -f on to apply to dataset",
 )
 parser.add_argument(
-    "-e",
-    "--headless",
-    action="store_true",
-    help="Run in headless mode"
+    "-e", "--headless", action="store_true", help="Run in headless mode"
 )
 parser.add_argument(
-    "-pp",
-    "--preprocess",
-    action="store_true",
-    help="Run preprocessing mode"
+    "-pp", "--preprocess", action="store_true", help="Run preprocessing mode"
 )
 parser.add_argument(
-    "-w",
-    "--width",
-    type=int,
-    help="Set image preprocessing width",
-    default="0"
+    "-w", "--width", type=int, help="Set image preprocessing width", default="0"
 )
 parser.add_argument(
-    "-ht",
-    "--height",
-    type=int,
-    help="Set image preprocessing height",
-    default="0"
+    "-ht", "--height", type=int, help="Set image preprocessing height", default="0"
 )
 parser.add_argument(
     "-gs",
     "--grayscale",
     action="store_true",
-    help="Set preprocessing color to grayscale"
+    help="Set preprocessing color to grayscale",
 )
 parser.add_argument(
-    "-z",
-    "--zip",
-    action="store_true",
-    help="Add dataset folder into zipfile"
+    "-z", "--zip", action="store_true", help="Add dataset folder into zipfile"
 )
-parser.add_argument(
-    "-i",
-    "--gui",
-    action="store_true",
-    help="Start in GUI mode"
-)
+parser.add_argument("-i", "--gui", action="store_true", help="Start in GUI mode")
 
 args = parser.parse_args()
 
@@ -172,6 +154,7 @@ target_path_imdb = "./dataset/images_imdb"
 target_path_google = "./dataset/images_google"
 target_path_dataset = "./dataset"
 
+
 def run_filter_mode():
     print(
         "Entering filter mode: will delete all non-face images and add a cropped folder for each actor"
@@ -190,7 +173,6 @@ def run_filter_mode():
         if e.errno != errno.EEXIST:
             raise
         pass
-
 
     if os.listdir(target_path_dataset):
         check_folder(target_path_dataset)
@@ -258,8 +240,10 @@ def run_preprocesses(width, height, grayscale, zip=False):
     if zip:
         run_zip()
 
+
 search_url_imdb = "https://www.imdb.com/find?q={q}&ref_=nv_sr_sm"
 imdb_list = "dataset/imdbactors.txt"
+
 
 def bs_get_page_imdb(name: str):
     response = requests.get(search_url_imdb.format(q=name).replace(" ", "+"))
@@ -274,6 +258,7 @@ def bs_get_page_imdb(name: str):
     except Exception as e:
         print(f"ERROR: Could not find {name} on imdb: {e}")
         return "no_result"
+
 
 def fetch_image_urls_imdb(
     query: str,
@@ -298,9 +283,7 @@ def fetch_image_urls_imdb(
                 link = get_imdb_image_link(f"https://www.imdb.com/{thumbnail_result}")
                 if "https://m.media-amazon.com" in link:
                     image_urls.add(link)
-                    print(
-                        f"{query}: {str(len(image_urls))}/{max_links_to_fetch}"
-                    )
+                    print(f"{query}: {str(len(image_urls))}/{max_links_to_fetch}")
     return image_urls
 
 
@@ -325,7 +308,8 @@ def persist_image(folder_path: str, url: str):
 
 # standard download size is 5
 def search_and_download(
-    platform: str, search_term: str, number_images, headless_toggle_sd):
+    platform: str, search_term: str, number_images, headless_toggle_sd
+):
 
     target_folder_imdb = os.path.join(
         target_path_imdb, "_".join(search_term.split(" "))
@@ -352,7 +336,7 @@ def search_and_download(
             elif page == number_pages:
                 num_img_to_get_this_step = number_images % 48
             imdb_link = bs_get_page_imdb(search_term)
-            if (imdb_link != "no_result"):
+            if imdb_link != "no_result":
                 # if headless_toggle_sd:
                 #     print("Running headless")
                 #     with webdriver.Firefox(
@@ -402,7 +386,7 @@ def run_search(manual_search, platform, headless_toggle_orig, rs_sample_size):
                     platform=platform,
                     search_term=item.strip(),
                     number_images=rs_sample_size,
-                    headless_toggle_sd=headless_toggle_orig
+                    headless_toggle_sd=headless_toggle_orig,
                 )
         elif custom_list != "":
             if not os.path.exists(custom_list):
@@ -416,7 +400,7 @@ def run_search(manual_search, platform, headless_toggle_orig, rs_sample_size):
                         platform=platform,
                         search_term=item.strip(),
                         number_images=rs_sample_size,
-                        headless_toggle_sd=headless_toggle_orig
+                        headless_toggle_sd=headless_toggle_orig,
                     )
     elif manual_search:
         print(f"Manual search: {manual_search}")
@@ -424,8 +408,9 @@ def run_search(manual_search, platform, headless_toggle_orig, rs_sample_size):
             platform=platform,
             search_term=manual_search.strip(),
             number_images=rs_sample_size,
-            headless_toggle_sd=headless_toggle_orig
+            headless_toggle_sd=headless_toggle_orig,
         )
+
 
 def start_search(google, imdb, manual, list, headless_switch, ss_sameple_size):
     if not manual and not os.path.exists(imdb_list) and custom_list == "":
@@ -448,6 +433,7 @@ def start_search(google, imdb, manual, list, headless_switch, ss_sameple_size):
         run_search(manual, "both", headless_switch, ss_sameple_size)
     else:
         print("Choose one of the following as search platform: [google, imdb, both]")
+
 
 # GUI related stuff
 class Ui_Dialog(object):
@@ -506,9 +492,15 @@ class Ui_Dialog(object):
         self.run_manual_search.setGeometry(QtCore.QRect(390, 170, 75, 23))
         self.run_manual_search.setObjectName("run_manual_search")
         self.run_manual_search.clicked.connect(
-            lambda: start_search(self.google_manual.isChecked(), self.imdb_manual.isChecked(),
-                                 self.manual_search_term.toPlainText(),
-                                 False, self.headless_2.isChecked(), self.sample_size_manual.value()))
+            lambda: start_search(
+                self.google_manual.isChecked(),
+                self.imdb_manual.isChecked(),
+                self.manual_search_term.toPlainText(),
+                False,
+                self.headless_2.isChecked(),
+                self.sample_size_manual.value(),
+            )
+        )
         # self.stop_manual_search = QPushButton(self.manual)
         # self.stop_manual_search.setGeometry(QtCore.QRect(390, 200, 75, 23))
         # self.stop_manual_search.setObjectName("stop_manual_search")
@@ -566,8 +558,15 @@ class Ui_Dialog(object):
         self.run_list_search.setGeometry(QtCore.QRect(390, 170, 75, 23))
         self.run_list_search.setObjectName("run_list_search")
         self.run_list_search.clicked.connect(
-            lambda: start_search(self.google_auto.isChecked(), self.imdb_auto.isChecked(), False, self.list_len.value(),
-                                 self.headless.isChecked(), self.sample_size_list.value()))
+            lambda: start_search(
+                self.google_auto.isChecked(),
+                self.imdb_auto.isChecked(),
+                False,
+                self.list_len.value(),
+                self.headless.isChecked(),
+                self.sample_size_list.value(),
+            )
+        )
         # self.stop_list_search = QPushButton(self.listsearch)
         # self.stop_list_search.setGeometry(QtCore.QRect(390, 200, 75, 23))
         # self.stop_list_search.setObjectName("stop_list_search")
@@ -604,8 +603,14 @@ class Ui_Dialog(object):
         self.run_prep = QPushButton(self.preprocesses)
         self.run_prep.setGeometry(QtCore.QRect(390, 170, 75, 23))
         self.run_prep.setObjectName("run_prep")
-        self.run_prep.clicked.connect(lambda:
-                                      run_preprocesses(self.width.value(), self.height.value(), self.grayscale.isChecked(), self.zip.isChecked()))
+        self.run_prep.clicked.connect(
+            lambda: run_preprocesses(
+                self.width.value(),
+                self.height.value(),
+                self.grayscale.isChecked(),
+                self.zip.isChecked(),
+            )
+        )
         self.tabWidget.addTab(self.preprocesses, "")
         self.retranslateUi(Dialog)
         self.tabWidget.setCurrentIndex(0)
@@ -627,7 +632,9 @@ class Ui_Dialog(object):
         # self.label_12.setText(_translate("Dialog", "Delay"))
         self.run_manual_search.setText(_translate("Dialog", "Run"))
         # self.stop_manual_search.setText(_translate("Dialog", "Stop"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.manual), _translate("Dialog", "Manual"))
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.manual), _translate("Dialog", "Manual")
+        )
         self.label_8.setText(_translate("Dialog", "List length"))
         self.pushButton.setText(_translate("Dialog", "Generate list"))
         # self.pushButton_4.setText(_translate("Dialog", "Custom list"))
@@ -640,15 +647,23 @@ class Ui_Dialog(object):
         # self.label_4.setText(_translate("Dialog", "Delay"))
         self.run_list_search.setText(_translate("Dialog", "Run"))
         # self.stop_list_search.setText(_translate("Dialog", "Stop"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.listsearch), _translate("Dialog", "Search from list"))
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.listsearch),
+            _translate("Dialog", "Search from list"),
+        )
         self.run_filter.setText(_translate("Dialog", "Run"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.filter), _translate("Dialog", "Filter"))
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.filter), _translate("Dialog", "Filter")
+        )
         self.label_5.setText(_translate("Dialog", "Width"))
         self.label_6.setText(_translate("Dialog", "Height"))
         self.grayscale.setText(_translate("Dialog", "Grayscale"))
         self.zip.setText(_translate("Dialog", "Generate zipfile when done"))
         self.run_prep.setText(_translate("Dialog", "Run"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.preprocesses), _translate("Dialog", "Preprocesses"))
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.preprocesses),
+            _translate("Dialog", "Preprocesses"),
+        )
 
 
 def run_gui():
@@ -659,22 +674,43 @@ def run_gui():
     Dialog.show()
     sys.exit(app.exec_())
 
+
 if gui_mode:
     run_gui()
 else:
     if filter_mode:
         run_filter_mode()
     if preprocess_mode:
-        run_preprocesses(width=args.width, height=args.height, grayscale=args.grayscale, zip=zip_mode)
+        run_preprocesses(
+            width=args.width, height=args.height, grayscale=args.grayscale, zip=zip_mode
+        )
     if zip_mode:
         run_zip()
     if (not filter_mode) and (not preprocess_mode) and (not zip_mode):
         if args.platform == "google":
-            start_search(google=True, imdb=False, manual=args.manual, list=args.list,
-                         headless_switch=run_headless, ss_sameple_size=args.sample_size)
+            start_search(
+                google=True,
+                imdb=False,
+                manual=args.manual,
+                list=args.list,
+                headless_switch=run_headless,
+                ss_sameple_size=args.sample_size,
+            )
         elif args.platform == "imdb":
-            start_search(google=False, imdb=True, manual=args.manual, list=args.list,
-                         headless_switch=run_headless, ss_sameple_size=args.sample_size)
+            start_search(
+                google=False,
+                imdb=True,
+                manual=args.manual,
+                list=args.list,
+                headless_switch=run_headless,
+                ss_sameple_size=args.sample_size,
+            )
         elif args.platform == "both":
-            start_search(google=True, imdb=True, manual=args.manual, list=args.list,
-                         headless_switch=run_headless, ss_sameple_size=args.sample_size)
+            start_search(
+                google=True,
+                imdb=True,
+                manual=args.manual,
+                list=args.list,
+                headless_switch=run_headless,
+                ss_sameple_size=args.sample_size,
+            )

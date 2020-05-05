@@ -5,7 +5,9 @@ import numpy as np
 
 
 def check_folder(folder):
-    face_cascade = cv2.CascadeClassifier("resources/haarcascade_frontalface_default.xml")
+    face_cascade = cv2.CascadeClassifier(
+        "resources/haarcascade_frontalface_default.xml"
+    )
     folderpaths = []
     for actor in os.listdir(folder):
         try:
@@ -31,9 +33,16 @@ def check_folder(folder):
                         for (x, y, w, h) in faces:
                             # cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
                             crop_img = img[y : (y + h), x : (x + w)]
-                            if not os.path.exists(f"./export_preprocessing/cropped/{actor[10:]}/"):
-                                os.makedirs(f"./export_preprocessing/cropped/{actor[10:]}/")
-                            cv2.imwrite(f"./export_preprocessing/cropped/{actor[10:]}/{path[:-4]}{saved_faces}.jpg", crop_img)
+                            if not os.path.exists(
+                                f"./export_preprocessing/cropped/{actor[10:]}/"
+                            ):
+                                os.makedirs(
+                                    f"./export_preprocessing/cropped/{actor[10:]}/"
+                                )
+                            cv2.imwrite(
+                                f"./export_preprocessing/cropped/{actor[10:]}/{path[:-4]}{saved_faces}.jpg",
+                                crop_img,
+                            )
                             saved_faces += 1
                             print(
                                 f"SUCCES: saved cropped version of {actor[10:]}/{path}"
@@ -45,8 +54,9 @@ def check_folder(folder):
             print(f"Could not load a file - {e}")
             continue
 
+
 def preprocess_image(folder, width, height, grayscale):
-    #TODO grayscale
+    # TODO grayscale
     subfolder_paths = []
     for subfolder in os.listdir(folder):
         try:
@@ -70,12 +80,17 @@ def preprocess_image(folder, width, height, grayscale):
                     resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
                     if grayscale:
                         resized = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
-                    if not os.path.exists(f"./export_preprocessing/{width}_{height}/{subfolder[30:]}/"):
-                        os.makedirs(f"./export_preprocessing/{width}_{height}/{subfolder[30:]}/")
-                    cv2.imwrite(f"./export_preprocessing/{width}_{height}/{subfolder[30:]}/{path}", resized)
-                    print(
-                        f"Processed: {subfolder[31:]}/{path}"
+                    if not os.path.exists(
+                        f"./export_preprocessing/{width}_{height}/{subfolder[30:]}/"
+                    ):
+                        os.makedirs(
+                            f"./export_preprocessing/{width}_{height}/{subfolder[30:]}/"
+                        )
+                    cv2.imwrite(
+                        f"./export_preprocessing/{width}_{height}/{subfolder[30:]}/{path}",
+                        resized,
                     )
+                    print(f"Processed: {subfolder[31:]}/{path}")
 
                 except Exception as e:
                     print(f"Could not load {path_parsed} - {e}")

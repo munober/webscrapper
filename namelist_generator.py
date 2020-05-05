@@ -17,23 +17,22 @@ url_series_current = (
     "https://www.imdb.com/chart/tvmeter/?ref_=nv_tvv_mptv"  # top 250 times one or two
 )
 url = "https://www.imdb.com/name/nm0000138/mediaviewer/rm1136570881"
+
+
 def get_imdb_image_link(url):
     links = []
     response = get(url)
     content = BeautifulSoup(response.text, "html.parser")
-    big_container = content.find(
-        "meta", itemprop = "image"
-    )
+    big_container = content.find("meta", itemprop="image")
     link = big_container.get("content")
     return link
+
 
 def get_imdb_thumbnail_links(url):
     links = []
     response = get(url)
     content = BeautifulSoup(response.text, "html.parser")
-    big_container = content.find(
-        "div", class_="media_index_thumb_list"
-    )
+    big_container = content.find("div", class_="media_index_thumb_list")
     if big_container:
         small_containers = big_container.find_all("a")
         for item in small_containers:
@@ -43,20 +42,17 @@ def get_imdb_thumbnail_links(url):
     else:
         return False
 
+
 def generate_list(number):
     actors = []
 
     # Scraping top current actors and directors in movies
     response = get(url_movies_current)
     html_soup = BeautifulSoup(response.text, "html.parser")
-    movie_containers = html_soup.find_all(
-        "td", class_="titleColumn"
-    )
+    movie_containers = html_soup.find_all("td", class_="titleColumn")
     print("Scraping currently popular movies")
     for item in movie_containers:
-        actors.append(
-            item.a.attrs.get("title").strip()
-        )
+        actors.append(item.a.attrs.get("title").strip())
 
     # Scraping top current tv series
     response = get(url_series_current)
