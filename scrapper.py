@@ -4,6 +4,7 @@ import os
 import errno
 import hashlib
 import sys
+import random
 
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtWidgets import *
@@ -261,6 +262,9 @@ def fetch_image_urls_imdb(
     thumbnail_results = get_imdb_thumbnail_links(search_url)
     if thumbnail_results:
         max_images_page = len(thumbnail_results)
+        pictures = random.sample(range(max_images_page), max_images_page)
+        thumbnail_results = [thumbnail_results[i] for i in pictures] # shuffling list randomly
+
         if max_links_to_fetch > max_images_page and max_images_page < 48:
             print(
                 f"imdb doesn't offer enough pictures for {query}: Only another {max_images_page} available."
@@ -307,26 +311,49 @@ def search_and_download(
         os.makedirs(target_folder_dataset)
 
     if platform == "imdb":
-        number_pages = floor(number_images / 48) + 1
-        page = 1
-        while page <= number_pages:
-            if page < number_pages:
+        # number_pages = floor(number_images / 48) + 1
+        # page = 1
+        if number_images > 480:
+            number_images = 480
+        saved_images = 0
+        imdb_link = bs_get_page_imdb(search_term)
+        pages = random.sample(range(11), 10)
+        print(pages)
+        for page in pages:
+            if number_images - saved_images > 47:
                 num_img_to_get_this_step = 48
-            elif page == number_pages:
-                num_img_to_get_this_step = number_images % 48
-            imdb_link = bs_get_page_imdb(search_term)
-            if imdb_link != "no_result":
+            else:
+                num_img_to_get_this_step = number_images - saved_images
+            if imdb_link != "no_result" and num_img_to_get_this_step != 0:
                 res_imdb = fetch_image_urls_imdb(
                     search_term,
                     num_img_to_get_this_step,
                     sleep_between_interactions=delay,
-                    search_url=(imdb_link + f"?page={page}"),
+                    search_url=(imdb_link + f"?page={page + 1}"),
                 )
                 for elem in res_imdb:
                     persist_image(target_folder_dataset, elem)
-                page += 1
+                    saved_images += 1
             else:
                 break
+        # while page <= number_pages:
+        #     if page < number_pages:
+        #         num_img_to_get_this_step = 48
+        #     elif page == number_pages:
+        #         num_img_to_get_this_step = number_images % 48
+        #     imdb_link = bs_get_page_imdb(search_term)
+        #     if imdb_link != "no_result":
+        #         res_imdb = fetch_image_urls_imdb(
+        #             search_term,
+        #             num_img_to_get_this_step,
+        #             sleep_between_interactions=delay,
+        #             search_url=(imdb_link + f"?page={page}"),
+        #         )
+        #         for elem in res_imdb:
+        #             persist_image(target_folder_dataset, elem)
+        #         page += 1
+        #     else:
+        #         break
     elif platform == "google":
         if headless_toggle_sd:
             print("Running headless")
