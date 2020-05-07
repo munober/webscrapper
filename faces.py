@@ -44,9 +44,9 @@ def check_folder(folder):
                         if len(faces) and len(faces_fr):
                             saved_faces = 0
                             for (x, y, w, h) in faces:
-                                crop_img = img[y: (y + h), x: (x + w)]
+                                crop_img = img[y : (y + h), x : (x + w)]
                                 if not os.path.exists(
-                                        f"./export_preprocessing/cropped/{actor[10:]}/"
+                                    f"./export_preprocessing/cropped/{actor[10:]}/"
                                 ):
                                     os.makedirs(
                                         f"./export_preprocessing/cropped/{actor[10:]}/"
@@ -87,7 +87,7 @@ def preprocess_image(folder, width, height, grayscale):
                     if grayscale:
                         resized = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
                         if not os.path.exists(
-                                f"./export_preprocessing/{width}_{height}_gs/{subfolder[30:]}/"
+                            f"./export_preprocessing/{width}_{height}_gs/{subfolder[30:]}/"
                         ):
                             os.makedirs(
                                 f"./export_preprocessing/{width}_{height}_gs/{subfolder[30:]}/"
@@ -98,7 +98,7 @@ def preprocess_image(folder, width, height, grayscale):
                         )
                     elif not grayscale:
                         if not os.path.exists(
-                                f"./export_preprocessing/{width}_{height}/{subfolder[30:]}/"
+                            f"./export_preprocessing/{width}_{height}/{subfolder[30:]}/"
                         ):
                             os.makedirs(
                                 f"./export_preprocessing/{width}_{height}/{subfolder[30:]}/"

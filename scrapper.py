@@ -263,7 +263,9 @@ def fetch_image_urls_imdb(
     if thumbnail_results:
         max_images_page = len(thumbnail_results)
         pictures = random.sample(range(max_images_page), max_images_page)
-        thumbnail_results = [thumbnail_results[i] for i in pictures] # shuffling list randomly
+        thumbnail_results = [
+            thumbnail_results[i] for i in pictures
+        ]  # shuffling list randomly
 
         if max_links_to_fetch > max_images_page and max_images_page < 48:
             print(
@@ -335,24 +337,7 @@ def search_and_download(
                     saved_images += 1
             else:
                 break
-        # while page <= number_pages:
-        #     if page < number_pages:
-        #         num_img_to_get_this_step = 48
-        #     elif page == number_pages:
-        #         num_img_to_get_this_step = number_images % 48
-        #     imdb_link = bs_get_page_imdb(search_term)
-        #     if imdb_link != "no_result":
-        #         res_imdb = fetch_image_urls_imdb(
-        #             search_term,
-        #             num_img_to_get_this_step,
-        #             sleep_between_interactions=delay,
-        #             search_url=(imdb_link + f"?page={page}"),
-        #         )
-        #         for elem in res_imdb:
-        #             persist_image(target_folder_dataset, elem)
-        #         page += 1
-        #     else:
-        #         break
+
     elif platform == "google":
         if headless_toggle_sd:
             print("Running headless")
@@ -604,7 +589,6 @@ class Ui_Dialog(object):
                 self.width.value(),
                 self.height.value(),
                 self.grayscale.isChecked(),
-                self.zip.isChecked(),
             )
         )
         self.tabWidget.addTab(self.preprocesses, "")
