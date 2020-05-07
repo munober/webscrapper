@@ -21,7 +21,7 @@ from namelist_generator import (
     get_imdb_image_link,
 )
 from google_link_collector import fetch_image_urls_google
-from faces import check_folder, preprocess_image
+from faces import check_folder, preprocess_image, second_filter
 from zipfile import ZipFile
 
 parser = argparse.ArgumentParser(
@@ -135,6 +135,7 @@ browser_pref = args.browser
 target_path_imdb = "./dataset/images_imdb"
 target_path_google = "./dataset/images_google"
 target_path_dataset = "./dataset"
+target_path_export = "./export_preprocessing/cropped"
 
 if browser_pref == "firefox":
     if os.name == "nt":
@@ -168,6 +169,7 @@ def run_filter():
 
     if os.listdir(target_path_dataset):
         check_folder(target_path_dataset)
+        second_filter(target_path_export)
     else:
         print("ERROR: You first need to fill up the dataset folder")
 
@@ -218,7 +220,7 @@ def run_preprocesses(width, height, grayscale):
 
         try:
             preprocess_image(
-                folder=f"./export_preprocessing/cropped",
+                folder=target_path_export,
                 width=width,
                 height=height,
                 grayscale=grayscale,

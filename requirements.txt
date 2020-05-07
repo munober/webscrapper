@@ -6,3 +6,5 @@ geckodriver-autoinstaller
 requests
 bs4
 Pillow
+face_recognition
+PyQt5

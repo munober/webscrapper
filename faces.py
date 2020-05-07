@@ -1,5 +1,20 @@
-import cv2
-import os
+import cv2, face_recognition, os
+
+
+def second_filter(path):
+    folderpaths = []
+    for item in os.listdir(path):
+        try:
+            folderpaths.append(f"{path}/{item}")
+        except Exception as e:
+            continue
+    for folder in folderpaths:
+        for item in os.listdir(folder):
+            img_fr = face_recognition.load_image_file(f"{folder}/{item}")
+            faces_fr = face_recognition.face_locations(img_fr)
+            if len(faces_fr) == 0:
+                print(f"no face found: {item}")
+                os.remove(f"{folder}/{item}")
 
 
 def check_folder(folder):
@@ -21,15 +36,17 @@ def check_folder(folder):
                         img = cv2.imread(path_parsed)
                         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                         faces = face_cascade.detectMultiScale(gray, 1.1, 4)
-                        if len(faces) == 0:
+                        img_fr = face_recognition.load_image_file(path_parsed)
+                        faces_fr = face_recognition.face_locations(img_fr)
+                        if len(faces) == 0 or len(faces_fr) == 0:
                             print(f"DELETED: no face found in {path_parsed}")
                             os.remove(path_parsed)
-                        if len(faces):
+                        if len(faces) and len(faces_fr):
                             saved_faces = 0
                             for (x, y, w, h) in faces:
-                                crop_img = img[y : (y + h), x : (x + w)]
+                                crop_img = img[y: (y + h), x: (x + w)]
                                 if not os.path.exists(
-                                    f"./export_preprocessing/cropped/{actor[10:]}/"
+                                        f"./export_preprocessing/cropped/{actor[10:]}/"
                                 ):
                                     os.makedirs(
                                         f"./export_preprocessing/cropped/{actor[10:]}/"
@@ -70,7 +87,7 @@ def preprocess_image(folder, width, height, grayscale):
                     if grayscale:
                         resized = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
                     if not os.path.exists(
-                        f"./export_preprocessing/{width}_{height}/{subfolder[30:]}/"
+                            f"./export_preprocessing/{width}_{height}/{subfolder[30:]}/"
                     ):
                         os.makedirs(
                             f"./export_preprocessing/{width}_{height}/{subfolder[30:]}/"
