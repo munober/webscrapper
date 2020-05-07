@@ -86,16 +86,28 @@ def preprocess_image(folder, width, height, grayscale):
                     resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
                     if grayscale:
                         resized = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
-                    if not os.path.exists(
-                            f"./export_preprocessing/{width}_{height}/{subfolder[30:]}/"
-                    ):
-                        os.makedirs(
-                            f"./export_preprocessing/{width}_{height}/{subfolder[30:]}/"
+                        if not os.path.exists(
+                                f"./export_preprocessing/{width}_{height}_gs/{subfolder[30:]}/"
+                        ):
+                            os.makedirs(
+                                f"./export_preprocessing/{width}_{height}_gs/{subfolder[30:]}/"
+                            )
+                        cv2.imwrite(
+                            f"./export_preprocessing/{width}_{height}_gs/{subfolder[30:]}/{path}",
+                            resized,
                         )
-                    cv2.imwrite(
-                        f"./export_preprocessing/{width}_{height}/{subfolder[30:]}/{path}",
-                        resized,
-                    )
+                    elif not grayscale:
+                        if not os.path.exists(
+                                f"./export_preprocessing/{width}_{height}/{subfolder[30:]}/"
+                        ):
+                            os.makedirs(
+                                f"./export_preprocessing/{width}_{height}/{subfolder[30:]}/"
+                            )
+                        cv2.imwrite(
+                            f"./export_preprocessing/{width}_{height}/{subfolder[30:]}/{path}",
+                            resized,
+                        )
+
                     print(f"Processed: {subfolder[31:]}/{path}")
 
                 except Exception as e:
