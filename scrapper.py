@@ -318,7 +318,6 @@ def search_and_download(
         saved_images = 0
         imdb_link = bs_get_page_imdb(search_term)
         pages = random.sample(range(11), 10)
-        print(pages)
         for page in pages:
             if number_images - saved_images > 47:
                 num_img_to_get_this_step = 48
@@ -678,7 +677,6 @@ else:
     if args.platform == "google":
         start_search(
             google=True,
-            imdb=False,
             manual=args.manual,
             headless_switch=run_headless,
             ss_sameple_size=args.sample_size,

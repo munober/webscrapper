@@ -13,7 +13,7 @@ def second_filter(path):
             img_fr = face_recognition.load_image_file(f"{folder}/{item}")
             faces_fr = face_recognition.face_locations(img_fr)
             if len(faces_fr) == 0:
-                print(f"no face found: {item}")
+                print(f"DELETED by second face filter: {item}")
                 os.remove(f"{folder}/{item}")
 
 

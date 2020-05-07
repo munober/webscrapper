@@ -1,5 +1,5 @@
 from selenium import webdriver
-import time
+import time, random
 
 
 def fetch_image_urls_google(
@@ -23,6 +23,10 @@ def fetch_image_urls_google(
         try:
             scroll_to_end(wd)
             thumbnail_results = wd.find_elements_by_css_selector("img.Q4LuWd")
+
+            pictures = random.sample(range(len(thumbnail_results)), len(thumbnail_results))
+            thumbnail_results = [thumbnail_results[i] for i in pictures]  # shuffling list randomly
+
             if max_links_to_fetch > len(thumbnail_results):
                 max_links_to_fetch = len(thumbnail_results)
             number_results = len(thumbnail_results)
