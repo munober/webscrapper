@@ -17,10 +17,8 @@ def second_filter(path):
                 os.remove(f"{folder}/{item}")
 
 
-def check_folder(folder):
-    face_cascade = cv2.CascadeClassifier(
-        "resources/haarcascade_frontalface_default.xml"
-    )
+def check_folder(folder, xml_file):
+    face_cascade = cv2.CascadeClassifier(xml_file)
     folderpaths = []
     for actor in os.listdir(folder):
         try:

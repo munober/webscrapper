@@ -24,7 +24,6 @@ from namelist_generator import (
     get_imdb_image_link,
 )
 from google_link_collector import fetch_image_urls_google
-from faces import check_folder, preprocess_image, second_filter
 from zipfile import ZipFile
 
 parser = argparse.ArgumentParser(
@@ -117,6 +116,11 @@ parser.add_argument(
 )
 parser.add_argument(
     "-no", "--nosearch", help="Don't run any search or download", action="store_true"
+)
+parser.add_argument(
+    "-x",
+    "--xml",
+    help="Enter path to preferred xml face filter file for opencv",
 )
 
 args = parser.parse_args()
@@ -425,7 +429,15 @@ else:
         print("Choose one of the following as search platform: [google, imdb, both]")
 
     if filter_images:
-        run_filter()
+        assertion_failed = False
+        if args.xml:
+            if not run_filter(args.xml):
+                print("FILTER ERROR: Given  path is not correct or file doesn't have proper format")
+                assertion_failed = True
+        if assertion_failed or not args.xml:
+            for filter_schema in os.listdir("./resources"):
+                if filter_schema.endswith(".xml"):
+                    run_filter(f"./resources/{filter_schema}")
     if preprocess_images:
         run_preprocesses(
             width=abs(args.width), height=abs(args.height), grayscale=args.grayscale

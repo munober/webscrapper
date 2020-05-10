@@ -8,7 +8,7 @@ target_path_export = "./export_preprocessing/cropped"
 imdb_list = "dataset/imdbactors.txt"
 
 
-def run_filter():
+def run_filter(xml_file):
     print(
         "Entering filter mode: will delete all non-face images and add a cropped folder for each actor"
     )
@@ -20,7 +20,7 @@ def run_filter():
         pass
 
     if os.listdir(target_path_dataset):
-        check_folder(target_path_dataset)
+        check_folder(target_path_dataset, xml_file)
         second_filter(target_path_export)
     else:
         print("ERROR: You first need to fill up the dataset folder")
