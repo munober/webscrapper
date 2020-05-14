@@ -125,6 +125,7 @@ parser.add_argument(
 
 args = parser.parse_args()
 non_search = args.nosearch
+
 delay = args.delay  # seconds, 1 second is recommended
 timeout = (
     args.timeout
@@ -401,32 +402,33 @@ def run_gui():
 if gui_mode:
     run_gui()
 else:
-    if args.platform == "google":
-        start_search(
-            google=True,
-            imdb=False,
-            manual=args.manual,
-            headless_switch=run_headless,
-            ss_sameple_size=args.sample_size,
-        )
-    elif args.platform == "imdb":
-        start_search(
-            google=False,
-            imdb=True,
-            manual=args.manual,
-            headless_switch=run_headless,
-            ss_sameple_size=args.sample_size,
-        )
-    elif args.platform == "both":
-        start_search(
-            google=True,
-            imdb=True,
-            manual=args.manual,
-            headless_switch=run_headless,
-            ss_sameple_size=args.sample_size,
-        )
-    else:
-        print("Choose one of the following as search platform: [google, imdb, both]")
+    if not non_search:
+        if args.platform == "google":
+            start_search(
+                google=True,
+                imdb=False,
+                manual=args.manual,
+                headless_switch=run_headless,
+                ss_sameple_size=args.sample_size,
+            )
+        elif args.platform == "imdb":
+            start_search(
+                google=False,
+                imdb=True,
+                manual=args.manual,
+                headless_switch=run_headless,
+                ss_sameple_size=args.sample_size,
+            )
+        elif args.platform == "both":
+            start_search(
+                google=True,
+                imdb=True,
+                manual=args.manual,
+                headless_switch=run_headless,
+                ss_sameple_size=args.sample_size,
+            )
+        else:
+            print("Choose one of the following as search platform: [google, imdb, both]")
 
     if filter_images:
         assertion_failed = False
