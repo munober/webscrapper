@@ -1,4 +1,6 @@
 import cv2, face_recognition, os
+from math import floor
+from random import randint
 
 
 def second_filter(path):
@@ -42,7 +44,15 @@ def check_folder(folder, xml_file):
                         if len(faces) and len(faces_fr):
                             saved_faces = 0
                             for (x, y, w, h) in faces:
-                                crop_img = img[y : (y + h), x : (x + w)]
+                                side = max(w,h)
+                                padding_ratio = 25 # percent of side length
+                                padding_increment_root = floor(padding_ratio / 100 * side)
+                                random_difference = floor(0.5 * padding_increment_root) # this adds a tiny bit of randomness to each cropping
+                                padding_increment = []
+                                for i in range(4):
+                                    padding_increment.append(padding_increment_root + randint(-random_difference,random_difference))
+                                # crop_img = img[y : (y + h), x : (x + w)] # no padding
+                                crop_img = img[(y - padding_increment[0]): (y + h + padding_increment[1]), (x - padding_increment[2]): (x + w + padding_increment[3])]
                                 if not os.path.exists(
                                     f"./export_preprocessing/cropped/{actor[10:]}/"
                                 ):
