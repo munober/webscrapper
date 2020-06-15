@@ -5,6 +5,9 @@ links.txt
 export_preprocessing
 .idea
 *.zip
+resources/chromedriver
+resources/chromedriver_win.exe
+
 
 widgets
 test.py
