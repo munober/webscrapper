@@ -61,7 +61,7 @@ parser.add_argument(
     "-l",
     "--list",
     help="Generate list of actor names; type in how many you want as argument",
-    default="100",
+    default="5000",
 )
 parser.add_argument(
     "-c",
