@@ -7,6 +7,7 @@ export_preprocessing
 *.zip
 resources/chromedriver
 resources/chromedriver_win.exe
+export_negatives
 
 
 widgets
