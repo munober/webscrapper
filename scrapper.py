@@ -112,7 +112,7 @@ parser.add_argument(
     "-b",
     "--browser",
     help="Choose preferred browser: [chrome, firefox]",
-    default="chrome",
+    default="firefox",
 )
 parser.add_argument(
     "-no", "--nosearch", help="Don't run any search or download", action="store_true"
@@ -121,6 +121,9 @@ parser.add_argument(
     "-x",
     "--xml",
     help="Enter path to preferred xml face filter file for opencv",
+)
+parser.add_argument(
+    "-pd", "--padding", type=int, help="Set maximum percentage of padding - will be chosen as a random between 0 and that", default="0"
 )
 
 args = parser.parse_args()
@@ -144,16 +147,17 @@ target_path_dataset = "./dataset"
 if browser_pref == "firefox":
     if os.name == "nt":
         web_driver = webdriver.Firefox(executable_path="resources/geckodriver.exe")
+    elif os.name == "darwin":
+        web_driver = webdriver.Firefox(executable_path="resources/geckodriver_macos")
     else:  # linux
         geckodriver_autoinstaller.install()
-        web_driver = webdriver.Chrome()
+        web_driver = webdriver.Firefox()
     options = webdriver.FirefoxOptions()
 elif browser_pref == "chrome":
     if os.name == "nt":
         web_driver = webdriver.Chrome(executable_path="resources/chromedriver_win.exe")
     else:  # linux
-        geckodriver_autoinstaller.install()
-        web_driver = webdriver.Firefox()
+        web_driver = webdriver.Chrome()
     options = webdriver.ChromeOptions()
 
 if run_headless:
@@ -439,7 +443,7 @@ else:
         if assertion_failed or not args.xml:
             for filter_schema in os.listdir("./resources"):
                 if filter_schema.endswith(".xml"):
-                    run_filter(f"./resources/{filter_schema}")
+                    run_filter(xml_file=f"./resources/{filter_schema}", padding=abs(args.padding))
     if preprocess_images:
         run_preprocesses(
             width=abs(args.width), height=abs(args.height), grayscale=args.grayscale

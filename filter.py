@@ -8,7 +8,7 @@ target_path_export = "./export_preprocessing/cropped"
 imdb_list = "dataset/imdbactors.txt"
 
 
-def run_filter(xml_file):
+def run_filter(xml_file, padding):
     print(
         "Entering filter mode: will delete all non-face images and add a cropped folder for each actor"
     )
@@ -19,8 +19,12 @@ def run_filter(xml_file):
             raise
         pass
 
+    if padding > 100:
+        print("Padding percentage cannot be larger than 100. Defaulting to 0%")
+        padding = 0
+
     if os.listdir(target_path_dataset):
-        check_folder(target_path_dataset, xml_file)
+        check_folder(folder=target_path_dataset, xml_file=xml_file, padding=padding)
         second_filter(target_path_export)
     else:
         print("ERROR: You first need to fill up the dataset folder")
@@ -49,7 +53,7 @@ def run_preprocesses(width, height, grayscale):
                 folder=target_path_export,
                 width=width,
                 height=height,
-                grayscale=grayscale,
+                grayscale=grayscale
             )
         except Exception as e:
             print("Failed to preprocess images: {}".format(e))

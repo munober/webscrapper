@@ -19,7 +19,7 @@ def second_filter(path):
                 os.remove(f"{folder}/{item}")
 
 
-def check_folder(folder, xml_file):
+def check_folder(folder, xml_file, padding):
     face_cascade = cv2.CascadeClassifier(xml_file)
     folderpaths = []
     for actor in os.listdir(folder):
@@ -44,13 +44,24 @@ def check_folder(folder, xml_file):
                         if len(faces) and len(faces_fr):
                             saved_faces = 0
                             for (x, y, w, h) in faces:
-                                side = max(w,h)
-                                padding_ratio = 25 # percent of side length
+                                side = min(w,h)
+                                padding_ratio = padding # percent of side length
                                 padding_increment_root = floor(padding_ratio / 100 * side)
-                                random_difference = floor(0.5 * padding_increment_root) # this adds a tiny bit of randomness to each cropping
+                                # difference = floor(0.5 * padding_increment_root) # deprecated
                                 padding_increment = []
                                 for i in range(4):
-                                    padding_increment.append(padding_increment_root + randint(-random_difference,random_difference))
+                                    # old way of doing it, deprecated
+                                    # padding_increment.append(padding_increment_root + randint(-difference,difference))
+                                    if i == 0:
+                                        random_seed = randint(0, 80)
+                                        padding_increment.append(floor(random_seed / 100 * padding_increment_root))
+                                        padding_increment.append(floor((100 - random_seed) / 100 * padding_increment_root))
+                                    if i == 2:
+                                        random_seed = randint(0, 80)
+                                        padding_increment.append(floor(random_seed / 100 * padding_increment_root))
+                                        padding_increment.append(floor((100 - random_seed) / 100 * padding_increment_root))
+                                    print("added this much padding: ", padding_increment[i], " to side ", i)
+
                                 # crop_img = img[y : (y + h), x : (x + w)] # no padding
                                 crop_img = img[(y - padding_increment[0]): (y + h + padding_increment[1]), (x - padding_increment[2]): (x + w + padding_increment[3])]
                                 if not os.path.exists(

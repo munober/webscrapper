@@ -8,7 +8,7 @@ export_preprocessing
 resources/chromedriver
 resources/chromedriver_win.exe
 export_negatives
-
+.DS_Store
 
 widgets
 test.py
